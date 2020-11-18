@@ -8,12 +8,11 @@ import numpy as np
 import argparse
 from vtk.util.numpy_support import vtk_to_numpy as npvtk
 from vtk.util.numpy_support import numpy_to_vtk
-import vedo 
 from time import time as TIME
-from principle_component_analysis import PRINCIPLE_COMPONENT_ANALYSIS
+from PrincipleComponentAnalysis import PRINCIPLE_COMPONENT_ANALYSIS
 
 class CardiacProjectVolumeToSurface():
-	def __init__(self,args):
+	def __init__(self,Args):
 		#Infolder with all of the data
 		self.Args=Args
 
@@ -21,12 +20,12 @@ class CardiacProjectVolumeToSurface():
 		#The input arguments
 		Args=self.Args
 		
-		print ("Reading: ",self.MBF_filename)
+		print ("Reading: ",Args.InputFileName)
 		Volume=self.READ_VTU(Args.InputFileName)
 		
 		print ("--- Getting the Surface")
 		Surface=self.GET_SURFACE(Volume)
-		
+	
 		if Args.Smoothing==1: 	
 			print ("--- Smoothing the Surface")
 			Surface=self.SURFACE_SMOOTHING(Surface,Args.Iterations,Args.PassBand,method="Laplace")
@@ -50,7 +49,7 @@ class CardiacProjectVolumeToSurface():
 		Surface_avg=self.SET_LINE_DATA(Surface,Line_avg)
 
 		#Store the Data to the output
-		self.WRITE_VTP(Surface_avg,Args.OutFileName)	
+		self.WRITE_VTP(Surface_avg,Args.OutputFileName)	
 	
 	#Set the Line average data to Surface
 	def SET_LINE_DATA(self,Surface,Line_avg):
@@ -91,18 +90,18 @@ class CardiacProjectVolumeToSurface():
 			
 				#Clip the surface to on the plane of the outer point
 				#slice_=self.CLIPPED_SLICE(pTarget_,Norm1,Volume) #Slice the plane
-				n_=int(D_opp/self.cell_size)
+				n_=int(D_opp/self.Args.Resolution)
 				slice_=Slices[n_]
 				centroid_slice_=Centroid_slices[n_]
 				line_,time_=self.CLIPPED_LINE(slice_,pSource_,pTarget_,Norm1,centroid_slice_) 
 				Time_array.append(time_)
-				print (np.average(Time_array))
+				#print (np.average(Time_array))
 				#Compute the average along the line
 				n_points_line_=line_.GetNumberOfPoints()
 				if n_points_line_>0:
 					line_av_=np.zeros(n_points_line_)
 					for j in range(n_points_line_):
-						line_av_[j]=line_.GetPointData().GetArray(Args.ArrayName).GetValue(j)
+						line_av_[j]=line_.GetPointData().GetArray(self.Args.ArrayName).GetValue(j)
 					Average_Data[i]=np.mean(line_av_)
 		return Average_Data
 
@@ -142,7 +141,7 @@ class CardiacProjectVolumeToSurface():
 		Coord_base=Centroid+2*Size*Norm1
 		Coord_apex=Centroid-2*Size*Norm1
 		#Create slice along the length of the appex
-		Npts=int((4*Size)/self.cell_size)
+		Npts=int((4*Size)/self.Args.Resolution)
 		#Loop over the the myocardium and compute slices        
 		Slices=[]
 		Centroid_slices=[]
@@ -150,7 +149,7 @@ class CardiacProjectVolumeToSurface():
 		for i in range(Npts):
 			progress_=self.PRINT_PROGRESS(i,Npts,progress_old)
 			progress_old=progress_
-			coord_=Coord_apex+Norm1*i*self.cell_size
+			coord_=Coord_apex+Norm1*i*self.Args.Resolution
 			slice_=self.CLIPPED_SLICE(coord_,Norm1,Volume)
 			if slice_.GetNumberOfPoints()==0:
 				Centroid_slices.append(coord_)
@@ -281,24 +280,25 @@ class CardiacProjectVolumeToSurface():
 		return progress_%10	
 if __name__=='__main__':
 	#Description
-        parser = argparse.ArgumentParser(description="This script will project the volumetric Myocardial Blood Flow data onto the surface of the ventricle.")
+	parser = argparse.ArgumentParser(description="This script will project the volumetric Myocardial Blood Flow data onto the surface of the ventricle.")
 	
 	#Input filename of the perfusion map
-        parser.add_argument('-ifile', '--Inpit', type=str, required=True, dest="FilenamePerfusion",help="Volumetric Mesh that contains the Myocardial Blood Flow Data ")
+	parser.add_argument('-ifile', '--InputFileName', type=str, required=True, dest="InputFileName",help="Volumetric Mesh that contains the Myocardial Blood Flow Data ")
 	
 	#Resolution of the Averaging Procedure
-        parser.add_argument('-resolution', '--Resolution', type=float, required=False,default=0.2, dest="Resolution",help="The resolution of the averaging procedure (default=0.2)")
+	parser.add_argument('-resolution', '--Resolution', type=float, required=False,default=0.02, dest="Resolution",help="The resolution of the averaging procedure (default=0.02)")
 	
 	#Surface Smoothing
-        parser.add_argument('-smoothing', '--Smoothing', type=int, required=False,default=1, dest="Smoothing",help="Smooth the surface (default=True)")
-        parser.add_argument('-passband', '--PassBand', type=float, required=False,default=0.2, dest="PassBand",help="Passband value for the smoothing (default=0.2)")
-        parser.add_argument('-iterations', '--Iterations', type=int, required=False,default=500, dest="Iterations",help="Iterations for the smoothing (default=500)")
+	parser.add_argument('-smoothing', '--Smoothing', type=int, required=False,default=1, dest="Smoothing",help="Smooth the surface (default=True)")
+	parser.add_argument('-passband', '--PassBand', type=float, required=False,default=0.2, dest="PassBand",help="Passband value for the smoothing (default=0.2)")
+	parser.add_argument('-iterations', '--Iterations', type=int, required=False,default=500, dest="Iterations",help="Iterations for the smoothing (default=500)")
 	
 	#Array Name of the Data
-        parser.add_argument('-arrayname', '--ArrayName', type=str, required=False,default="ImageScalars", dest="ArrayName",help="The name of the array containing the MBF values")
+	parser.add_argument('-arrayname', '--ArrayName', type=str, required=False,default="ImageScalars", dest="ArrayName",help="The name of the array containing the MBF values")
 	
 	#Output argumenets
-        parser.add_argument('-outfile', '--OutputFileName', type=str, required=True, dest="OutputFileName",help="The output filename of the projected surface")
+	parser.add_argument('-ofile', '--OutputFileName', type=str, required=True, dest="OutputFileName",help="The output filename of the projected surface")
 
-        args=parser.parse_args()
+        
+	args=parser.parse_args()
 	CardiacProjectVolumeToSurface(args).main()
