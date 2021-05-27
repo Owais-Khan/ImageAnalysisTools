@@ -52,7 +52,7 @@ class CoronaryPerfusionTerritories():
 		print ("--- Writing the territory maps")
 		self.Write_Territories(VentricleMesh,ClosestCenterLines)
 	
-	def Write_Territories(self,LV_mesh,Closest_CL,LV_filename):
+	def Write_Territories(self,LV_mesh,Closest_CL):
 		#Create New Array in LV mesh with CL names
 		territories=vtk.vtkIntArray()
 		territories.SetNumberOfComponents(1)
