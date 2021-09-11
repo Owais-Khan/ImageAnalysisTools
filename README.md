@@ -10,10 +10,18 @@ Dynamic CT Myocardial Perfusion Imaging (CT-MPI) is an advanced imaging modality
 
 ![DynamicCTMPI Image1](images/1_DynamiCTMPI_Figure1.png)
 
-*Figure 1: Stress dynamic CT-MPI shown at three of 15 time points to highlight passage of contrast. The right panel shows arterial input function (AIF) and myocardial tissue time attenuation curves (TAC) that are needed in tracer kinetic model to compute myocardial blood flow. Green=Arterial input function, Red=Myocardial time attenuation curve.* 
+*Figure 1: Stress dynamic CT-MPI shown at three of 15 time points to highlight the passage of contrast. The right panel shows arterial input function (AIF) and myocardial tissue time attenuation curves (TAC) that are needed in tracer kinetic model to compute myocardial blood flow. Green=Arterial input function, Red=Myocardial time attenuation curve.* 
 
-### 1.1 Quantifying Vessel-Specific Myocardial Territories.
+### 1.1 Obtain Coronary Centerlines
+Coronary centerlines are need to separate the myocardium into vessel-specific territories. The following spcript will take the "mesh-complete" folder as input and compute a "Centerlines" folder as output, which will contain the centerlines of the coronary arteries. The "mesh-complete" folder can be genrated from SimVascular after segmenting the coronary arteries. Please ensure to label the left and the right coronary trees as "wall_LCA\*.vtp" and "wall_RCA\*.vtp", respectively.
+
+
+### 1.2 Quantifying Vessel-Specific Myocardial Territories using Dynamic CT-MPI and coronary CTA
  You may use the following pipeline to separate the myocardium into territories based on proximity to a coronary vessel. These territorty maps are useful to determine vessel-specific ischemia, assign boundary conditions or compute vessel-specific myocardial mass. You will need the following three items to perform this analysis:
-1.  
+1. VTK Mesh that contains MBF data: This file should contain volumetric images of the myocardium and the scalar values of myocardial blood flow. The mesh should ideally be aligned/registered to the coronary CTA.
+2. Centerlines folder that contains centerlines of all coronary arteries. These should be in vtk poly data file format and can be obtained using Vascular Modeling Toolkit. 
 
-The following pipeline can be used to analyze these volumetric images. 
+
+
+ 
+
