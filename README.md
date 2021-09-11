@@ -9,6 +9,7 @@ The scripts in this repository provide useful tools to analyze medical images. Y
 Dynamic CT Myocardial Perfusion Imaging (CT-MPI) is an advanced imaging modality that can be used to image the blood flow inside myocardial tissue. The image acquistion pipeline generally involves four steps: i) inducing vasodilator-mediate hypermia followed by injection of iodine-based contrast agent; ii) scanning myocardium for 20-30 seconds, providing ~15 time points during the passage of contrast; iii) extracting time attenuation curves in an artery (typically ascending aorta) and myocardium; and iv) calculating myocardial blood flow using a tracer kinetic model. 
 
 ![DynamicCTMPI Image1](images/1_DynamiCTMPI_Figure1.png)
+
 *Figure 1: Stress dynamic CT-MPI shown at three of 15 time points to highlight passage of contrast. The right panel shows arterial input function (AIF) and myocardial tissue time attenuation curves (TAC) that are needed in tracer kinetic model to compute myocardial blood flow. Green=Arterial input function, Red=Myocardial time attenuation curve.* 
 
 ### 1.1 Quantifying Vessel-Specific Myocardial Territories.
