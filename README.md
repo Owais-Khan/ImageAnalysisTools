@@ -12,8 +12,12 @@ Dynamic CT Myocardial Perfusion Imaging (CT-MPI) is an advanced imaging modality
 
 *Figure 1: Stress dynamic CT-MPI shown at three of 15 time points to highlight the passage of contrast. The right panel shows arterial input function (AIF) and myocardial tissue time attenuation curves (TAC) that are needed in tracer kinetic model to compute myocardial blood flow. Green=Arterial input function, Red=Myocardial time attenuation curve.* 
 
-### 1.1 Obtain Coronary Centerlines
-Coronary centerlines are need to separate the myocardium into vessel-specific territories. The following spcript will take the "mesh-complete" folder as input and compute a "Centerlines" folder as output, which will contain the centerlines of the coronary arteries. The "mesh-complete" folder can be genrated from SimVascular after segmenting the coronary arteries. Please ensure to label the left and the right coronary trees as "wall_LCA\*.vtp" and "wall_RCA\*.vtp", respectively.
+### 1.1 Computing Coronary Centerlines
+Coronary centerlines are needed to separate the myocardium into vessel-specific territories. The following spcript will take the "mesh-complete" folder from SimVascular as input and generate centerlines for each wall surface of coronary arteries. The centerlines will be stored inside "Centerlines" folder, the path to which you can assign as an argument. Please ensure to label the left and the right coronary trees as "wall_LCA\*.vtp" and "wall_RCA\*.vtp", respectively.
+
+```console
+foo@bar:~$ python ImageAnalysisCoronaryCenterlines.py -ifolder /path/to/mesh-complete/ -ofolder /path/to/outputfolder/to/store/centerlines/
+```
 
 
 ### 1.2 Quantifying Vessel-Specific Myocardial Territories using Dynamic CT-MPI and coronary CTA
