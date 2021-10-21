@@ -10,7 +10,10 @@ class ImageAnalysis4DMRIAngiography():
 
 	def Main(self):
 		#Separate all images into individual folders
-		self.SeparateCycles(self.Args.Phase1Folder,"Phase1")		
+		self.SeparateCycles(self.Args.MagnitudeFolder,"Magnitude")
+        	self.SeparateCycles(self.Args.Phase1Folder,"Phase1")
+        	self.SeparateCycles(self.Args.Phase2Folder,"Phase2")
+		self.SeparateCycles(self.Args.Phase3Folder,"Phase3")		
 
 	def SeparateCycles(self,FolderName,Tag):
 		#Get all of the files in the folder
@@ -23,7 +26,7 @@ class ImageAnalysis4DMRIAngiography():
 		counter=0
 		for i in range(len(FileNames_)):
 			os.system("cp %s %s/%s/%s_%d"%(FileNames_[i],self.Args.OutputFolder,Tag,Tag,counter))
-			if i%(len(FileNames_)/self.Args.Cycles): counter+=1
+			if (i+1)%(len(FileNames_)/self.Args.Cycles)==0: counter+=1
 			
 
 
