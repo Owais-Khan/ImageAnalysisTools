@@ -22,7 +22,7 @@ class ImageAnalysis4DMRIAngiography():
 		#Loop over all of the files and stack them into difference folders
 		counter=0
 		for i in range(len(FileNames_)):
-			os.system("cp %s %s/%s/%s_%d"%(FileNames_[i],self.Args.OutputFolder,Tag,Tag,counter))
+			os.system("cp %s %s/%s/%s_%d/"%(FileNames_[i],self.Args.OutputFolder,Tag,Tag,counter))
 			if i%(len(FileNames_)/self.Args.Cycles): counter+=1
 			
 

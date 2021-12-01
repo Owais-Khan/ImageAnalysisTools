@@ -27,7 +27,7 @@ class PRINCIPLE_COMPONENT_ANALYSIS():
 	
 		#Get the size of the Myocardium (Apex to valve)
 		#Size1=np.max(np.power(np.power(Coords[:,0]-Apex[0],2)+np.power(Coords[:,1]-Apex[1],2)+np.power(Coords[:,2]-Apex[2],2),0.5))
-		Size=self.get_size(Coords,Apex,Norm1,Norm2)	
+		Size=abs(self.get_size(Coords,Apex,Norm1,Norm2))
 		
 		#print ("\n")
 		#print ("--- LV Morpholocial Analysis")

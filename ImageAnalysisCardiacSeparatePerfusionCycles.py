@@ -19,7 +19,10 @@ class CardiacSeparatePerfusionCycles():
 
 		#Seperate the files into individual folders
 		filenames=glob("%s/*.dcm"%self.Args.InputFolderName)
-		filenames=sorted(filenames, key=lambda filename: int(filename.split(".")[4]))
+		try:
+			filenames=sorted(filenames, key=lambda filename: int(filename.split(".")[4]))
+		except: 
+			filenames=sorted(filenames)
 		N_image_cyc=int((len(filenames))/self.Args.NumberOfCycles)
 		count=0
 		for i in range(0,len(filenames),N_image_cyc):
