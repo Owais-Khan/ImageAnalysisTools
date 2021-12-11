@@ -1,0 +1,158 @@
+import sys
+import os
+from glob import glob
+from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
+import numpy as np
+import vtk
+import argparse
+from utilities import *
+from PrincipleComponentAnalysis import PRINCIPLE_COMPONENT_ANALYSIS
+
+class ImageAnalysisMyocardiumMorphVolumeToSurface():
+	def __init__(self,Args):
+		self.Args=Args
+
+		if self.Args.OutputVolume is None:
+			self.Args.OutputVolume=self.Args.InputVolume.replace(".vtu","_dilated.vtu")
+
+		self.WallThickness=10 #10 nodes max for wall thickness
+		self.NodesPerElem=8
+		self.Threshold=self.WallThickness*self.NodesPerElem	
+	def Main(self):
+                #Read the vtu file
+		print ("--- Reading %s"%self.Args.InputVolume)
+		Volume=ReadVTUFile(self.Args.InputVolume)
+	
+		#Read the vtp file of the LV from CTA
+		print ("--- Read %s"%self.Args.InputSurface)
+		Surface=ReadVTPFile(self.Args.InputSurface)
+
+		#Case Rays from CTA Surface to Find Average of the CTA Volume
+		print ("--- Project Volume Quantities onto Surface")
+		self.ProjectVolumeToSurface(Volume,Surface)
+
+	def ProjectVolumeToSurface(self,Volume,Surface):
+		#Get PCA of the CTA Surface
+		print ("------ Computing Principle Component Analysis of CTA Surface")
+		Centroid,Norm1,Norm2,Apex,Size=PRINCIPLE_COMPONENT_ANALYSIS(Surface).main()
+	
+		print ("------ Computing Surface Normals of CTA Surface")
+		Surface=SurfaceNormals(Surface)
+
+		#Get the number of points
+		Npts=Surface.GetNumberOfPoints()
+                
+		#Build a Cell Locator
+		VolumeLocator = vtk.vtkCellLocator()
+		VolumeLocator.SetDataSet(Volume)
+		VolumeLocator.BuildLocator()
+	
+		#Create a dictionary to store Average, Median and 75th Percentile MBF
+		MBF={"MBF_WallAveraged":np.zeros(Npts), "Weights":np.zeros(Npts)}
+	
+		#Create an array to store surface points that have zero values
+		NodesZeroMBF=[]
+	
+		for i in range(0,Npts):
+			coord_=np.array(Surface.GetPoint(i))
+
+			#Get the Surface Normal
+			CellNormal_=np.array(Surface.GetPointData().GetArray("Normals").GetTuple(i))
+			
+			#Get Source and Target Points in Normal Directions
+			DistToCenter=np.linalg.norm(coord_-Centroid)
+			pSource=coord_-CellNormal_*DistToCenter*0.5
+			pTarget=coord_+CellNormal_*DistToCenter*0.5
+
+			#Get the Intersection of line with Volume Cells	
+			cellids=vtk.vtkIdList()
+			VolumeLocator.FindCellsAlongLine(pSource,pTarget,1e-6,cellids)
+			
+			#Get the Point Ids of the cells that intersect with line
+			pointids=vtk.vtkIdList() #Point ids to store
+			for j in range(cellids.GetNumberOfIds()):
+				pointids_=vtk.vtkIdList()
+				Volume.GetCellPoints(cellids.GetId(j), pointids_)
+				#Add all four points of the hex cell into the point id list
+				for k in range(pointids_.GetNumberOfIds()):
+					pointids.InsertNextId(pointids_.GetId(k))
+
+			#Get the MBF Data using the point ids
+			MBF_=np.array([Volume.GetPointData().GetArray("scalars").GetValue(pointids.GetId(j)) for j in range(pointids.GetNumberOfIds())])
+			
+			if len(MBF_)>0:
+				#Get the Distance from the Surface Coordinate
+				Dist_=np.array([np.linalg.norm(coord_-Volume.GetPoint(pointids.GetId(j))) for j in range(pointids.GetNumberOfIds())])
+				#Sort the MBF Array according to distance from the surface coordinate
+				DistSort=np.argsort(Dist_)
+	
+				#Sort MBF according to Distance Array
+				MBFSorted_=[]
+				for j in range(len(MBF_)): MBFSorted_.append(MBF_[DistSort[j]])
+				MBFSorted_=np.array(MBFSorted_)[0:self.Threshold]
+
+				#Get the average MBF values of all the point nodes
+				MBF["MBF_WallAveraged"][i]=np.average(MBFSorted_)
+				MBF["Weights"][i]=pointids.GetNumberOfIds()
+			else:
+                                
+				MBF["MBF_WallAveraged"][i]=-999.0
+				MBF["Weights"][i]=-999.0 
+				NodesZeroMBF.append(i)					
+
+		#Fill all of the empty values with values from average of the neightbouring cells.
+		print ("------ There are %d points that have Zero MBF value"%len(NodesZeroMBF))
+		print ("------ Filling these values with MBF from Neighbouring points")
+		for PointId in NodesZeroMBF:
+			coord_=Surface.GetPoint(PointId)
+			Dist_=np.array([np.linalg.norm(coord_-np.array(Surface.GetPoint(i))) for i in range(Npts)])
+			DistSortIds_=np.argsort(Dist_)
+			MBF_closest_=[MBF["MBF_WallAveraged"][i] for i in DistSortIds_]
+			MBF_closest_=[Value for Value in MBF_closest_ if Value!=-999.0]
+			MBF["MBF_WallAveraged"][PointId]=np.average(MBF_closest_[0:5])
+			MBF["Weights"][PointId]=1
+			
+	
+		#Get 75th Percentile MBF
+		MBF_75Q=np.percentile(MBF["MBF_WallAveraged"],0.75)
+
+		#Add Array to the Surface
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"],"MBF_WallAveraged")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_75Q,"MBF_Normalized75Q")
+		Surface=SurfaceAddArray(Surface,MBF["Weights"],"Weights")
+
+		WriteVTPFile("Surface.vtp",Surface)
+	
+        #Print the progress of the loop
+	def PRINT_PROGRESS(self,i,N,progress_old):
+		progress_=(int((float(i)/N*100+0.5)))
+		if progress_%10==0 and progress_%10!=progress_old: print ("    Progress: %d%%"%progress_)
+		#progress_=int((float(i)/N)*1000)
+		#if progress_%100==0: print ("    Progress: %d%%"%int(progress_/10.)),
+		return progress_%10
+	
+
+if __name__=="__main__":
+        #Description
+	parser = argparse.ArgumentParser(description="This script will dilate the myocardium by a specified vaue")
+	parser.add_argument('-InputVolume', '--InputVolume', type=str, required=True, dest="InputVolume",help="The vtu file that contains the myocardial volume")
+        
+	parser.add_argument('-InputSurface', '--InputSurface', type=str, required=True, dest="InputSurface",help="The vtp file that contains the myocardium surface")
+
+        #Output Filename 
+	parser.add_argument('-OutputVolume', '--OutputVolume', type=str, required=False, dest="OutputVolume",help="The vtu file to store the output volume")
+	
+	args=parser.parse_args()
+	ImageAnalysisMyocardiumMorphVolumeToSurface(args).Main()
+
+		
+				
+			
+			
+
+
+
+
+
+	
+

@@ -1,5 +1,6 @@
 import vtk
 from vmtk import vtkvmtk, vmtkscripts
+from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import numpy as np
 from glob import glob
 
@@ -94,7 +95,7 @@ def FurthestPoint(Point, Array):
         return Array[np.argmax(dist_2)],np.argmax(dist_2)
 
         
-def ClippedSlices(Origin,Norm,Volume):
+def CutPlane(Volume,Origin,Norm):
 	plane=vtk.vtkPlane()
 	plane.SetOrigin(Origin)
 	plane.SetNormal(Norm)
@@ -105,36 +106,33 @@ def ClippedSlices(Origin,Norm,Volume):
 	Slice.Update()
 	return Slice.GetOutput()
 
-
-
-def CutPolyData(Point1,Point2,Slice,Norm1):
+def CutLine(Slice,Point,Centroid,Norm1):
 	#Get the two in-plane normals
-	Norm2_slice=(Point1-Point2)/np.linalg.norm(Point1-Point2)
+	Norm2_slice=(Point-Centroid)/np.linalg.norm(Point-Centroid)
 	Norm3_slice=np.cross(Norm1,Norm2_slice)
+	
 	#Generate the two planes
 	plane_N2=vtk.vtkPlane()
-	plane_N2.SetOrigin(Point2)
+	plane_N2.SetOrigin(Centroid)
 	plane_N2.SetNormal(Norm2_slice)
 	plane_N3=vtk.vtkPlane()
-	plane_N3.SetOrigin(Point2)
+	plane_N3.SetOrigin(Centroid)
 	plane_N3.SetNormal(Norm3_slice)
+	
 	#Clip the plane to get a line across the diameter
 	Line =vtk.vtkCutter()
 	Line.GenerateTrianglesOff()
 	Line.SetCutFunction(plane_N3)
 	Line.SetInputData(Slice)
 	Line.Update()
-                
+        
 	#Separate the line into only one quarter (i.e. half the line)
 	Line1=vtk.vtkClipPolyData()
 	Line1.SetClipFunction(plane_N2)
 	Line1.SetInputData(Line.GetOutput())
 	Line1.Update()
-	Line1_data=Line1.GetOutput()
-	
-	return Line1
+	return Line1.GetOutput()
 
-#Get Centroid of the VTK dataset
 def GetCentroid(Surface):
 	Centroid=vtk.vtkCenterOfMass()
 	Centroid.SetInputData(Surface)
@@ -156,10 +154,7 @@ def PrintProgress(self,i,N,progress_old):
 	if progress_%10==0 and progress_%10!=progress_old: print ("    Progress: %d%%"%progress_)
 	return progress_%10
 
-############### Surface Manipulators ##########
-#Get the outer surface tags
-def TagOuterSurface(self,Surface):
-	
+def TagOuterSurface(Surface):
 	#Create an OBB tree and cast Rays       
 	obbTree = vtk.vtkOBBTree()
 	obbTree.SetDataSet(Surface)
@@ -170,12 +165,13 @@ def TagOuterSurface(self,Surface):
 	Surface_tags=np.zeros(Surface.GetNumberOfPoints())
        
 	#Get Centroid
-	Centroid=GetCentroid(Surface)
+	Centroid=np.array(GetCentroid(Surface))
 
 	#Loop over all the points. 
 	for i in range(Surface.GetNumberOfPoints()):
-		pSource=Surface.GetPoint(i)
-		code = obbTree.IntersectWithLine(pSource, Centroid, pointsVTKintersection, None)
+		pSource=np.array(Surface.GetPoint(i))
+		pTarget=pSource+np.array((pSource-Centroid))*5
+		code = obbTree.IntersectWithLine(pSource, pTarget, pointsVTKintersection, None)
 		X=pointsVTKintersection.GetData().GetNumberOfTuples()
 		if X>1: Surface_tags[i]=1
 			
@@ -188,19 +184,60 @@ def TagOuterSurface(self,Surface):
                 
 	return Surface
 
+#Smooth Surface
+def SurfaceSmoothing(Surface,Nits,PB_value,method="Taubin"):
+	if method=="Taubin":
+		smoothingFilter = vtk.vtkWindowedSincPolyDataFilter()
+		smoothingFilter.SetInputData(Surface)
+		smoothingFilter.SetNumberOfIterations(Nits)
+		smoothingFilter.SetPassBand(PB_value)
+		smoothingFilter.SetBoundarySmoothing(True)
+		smoothingFilter.Update()
+		return smoothingFilter.GetOutput()
+	elif method=="Laplace":
+		smoothingFilter = vtk.vtkSmoothPolyDataFilter()
+		smoothingFilter.SetInputData(Surface)
+		smoothingFilter.SetNumberOfIterations(Nits)
+		smoothingFilter.SetRelaxationFactor(PB_value)
+		smoothingFilter.Update()
+		return smoothingFilter.GetOutput()
+	else:
+		print ("Error. The smoothing filter was not found")
+		exit(1)
 
-################ Direction Function ###########
-#This function will extract the direction from a
-#block of receptive field.
-#def DirectionVector(Image,Point,BoxSize):
-	
+def SurfaceAddArray(Surface,Array,ArrayName):
+	SurfaceArray=numpy_to_vtk(Array,deep=True)
+	SurfaceArray.SetName(ArrayName)
+	Surface.GetPointData().AddArray(SurfaceArray)
+	Surface.Modified()
+	return Surface
 
+def ProjectedPointOnLine(coord_,Centroid,Apex,Norm1):
+	#Find the location (coord,distance) on the LV Apex-Base axis
+	dist_P_to_line_=np.sqrt(vtk.vtkLine.DistanceToLine(coord_,Centroid,Apex))
+	dist_P_to_Apex_=np.power( np.power(coord_[0]-Apex[0],2) + np.power(coord_[1]-Apex[1],2) + np.power(coord_[2]-Apex[2],2),0.5)
+	dist_Apex_to_ProjP_=np.power(np.power(dist_P_to_Apex_,2)-np.power(dist_P_to_line_,2),0.5)
+	coord_ProjP_=Apex-Norm1*dist_Apex_to_ProjP_
 
+	return coord_ProjP_
 
-	
+def SurfaceNormals(Surface):
+	normals = vtk.vtkPolyDataNormals()
+	normals.SetInputData(Surface)
+	normals.SetFeatureAngle(90)
+	normals.AutoOrientNormalsOn()
+	#  normals.GetOutput().ReleaseDataFlagOn()
+	normals.UpdateInformation()
+	normals.Update()
+	Surface = normals.GetOutput()
 
+	return Surface
 
-
-
-
+def SurfaceThresholdByLower(Surface,arrayname,value):
+	Threshold=vtk.vtkThreshold()
+	Threshold.SetInputData(Surface)
+	Threshold.ThresholdByLower(value)
+	Threshold.SetInputArrayToProcess(0,0,0,"vtkDataObject::FIELD_ASSOCIATION_CELLS",arrayname)
+	Threshold.Update()
+	return Threshold.GetOutput()
 

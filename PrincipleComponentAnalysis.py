@@ -37,7 +37,7 @@ class PRINCIPLE_COMPONENT_ANALYSIS():
 		print ("----------The Location of Apex:  ",Apex)
 		print ("----------The Size of Myocardium:",Size)
 		del self.surface,self.volume,volume_data,surface_data,
-		return Centroid,Norm1,Norm2,Apex,Size
+		return np.array(Centroid),Norm1,Norm2,np.array(Apex),Size
 
 	def get_size(self,Coords,Apex,Norm1,Norm2):
 		#Get the projection of the max distance onto the myocardial centerline	
