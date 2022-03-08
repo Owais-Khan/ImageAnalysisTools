@@ -15,17 +15,24 @@ class ImageAnalysisMyocardiumMorphVolumeToSurface():
 		if self.Args.OutputSurface is None:
 			self.Args.OutputSurface=self.Args.InputSurface.replace(".vtp","_ProjectedMBF.vtp")
 			self.Args.OutputThickness=self.Args.InputSurface.replace(".vtp","_ProjectedMBFThicknessMap.dat")
+		else:
+			self.Args.OutputThickness=self.Args.OutputSurface.replace(".vtp","_ThicknessMap.dat")
 			
-
-
 	def Main(self):
                 #Read the vtu file
 		print ("--- Reading %s"%self.Args.InputVolume)
-		#If Volume is an image stack, apply the threshold
-		#if self.Args.InputVolume.find(".vtk")>=0:
-		#	Volume=ThresholdByLower(
-		#else:
-		Volume=ReadVTUFile(self.Args.InputVolume)
+		
+		if   self.Args.InputVolume[-4:]==".vtk":
+			Volume=ReadVTKFile(self.Args.InputVolume)   #Read a VTK volume stack
+			Volume=ThresholdByUpper(Volume,"scalars",0) #Convert to an unstructured grid 
+		
+		elif self.Args.InputVolume[-4:]==".vtu":
+			Volume=ReadVTUFile(self.Args.InputVolume) #Read a VTU unstructured grid
+		else:
+			print ("The extension %s is not valid for volume"%self.Args.InputVolume[-4:])
+			print ("Exiting...")
+			exit(1)
+
 	
 		#Read the vtp file of the LV from CTA
 		print ("--- Read %s"%self.Args.InputSurface)
@@ -131,16 +138,19 @@ class ImageAnalysisMyocardiumMorphVolumeToSurface():
 			MBF["MBF_WallAveraged"][PointId]=np.average(MBF_closest_[0:5])
 			MBF["Weights"][PointId]=1
 			
-	
+
+		print ("--- Computing 50th and 75th percentiles")	
 		#Get 75th Percentile MBF
 		MBF_75Q=np.percentile(MBF["MBF_WallAveraged"],0.75)
+		MBF_50Q=np.percentile(MBF["MBF_WallAveraged"],0.50)
 
 		#Add Array to the Surface
 		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"],"MBF_WallAveraged")
 		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_75Q,"MBF_Normalized75Q")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_50Q,"MBF_Normalized50Q")
 		Surface=SurfaceAddArray(Surface,MBF["Weights"],"Weights")
 
-		WriteVTPFile("Surface.vtp",Surface)
+		WriteVTPFile(self.Args.OutputSurface,Surface)
 	
         #Print the progress of the loop
 	def PRINT_PROGRESS(self,i,N,progress_old):

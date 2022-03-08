@@ -27,6 +27,14 @@ def ReadVTUFile(FileName):
 	reader.Update()
 	return reader.GetOutput()
 
+def ReadVTKFile(FileName):
+	reader = vtk.vtkStructuredPointsReader()
+	reader.SetFileName(FileName)
+	reader.ReadAllVectorsOn()
+	reader.ReadAllScalarsOn()
+	reader.Update()
+	return reader.GetOutput()
+
 def ReadVTPFile(FileName):
 	reader=vtk.vtkXMLPolyDataReader()
 	reader.SetFileName(FileName)
@@ -233,11 +241,11 @@ def SurfaceNormals(Surface):
 
 	return Surface
 
-def SurfaceThresholdByLower(Surface,arrayname,value):
+def ThresholdByUpper(Volume,arrayname,value):
 	Threshold=vtk.vtkThreshold()
-	Threshold.SetInputData(Surface)
-	Threshold.ThresholdByLower(value)
-	Threshold.SetInputArrayToProcess(0,0,0,"vtkDataObject::FIELD_ASSOCIATION_CELLS",arrayname)
+	Threshold.SetInputData(Volume)
+	Threshold.ThresholdByUpper(value)
+	Threshold.SetInputArrayToProcess(0,0,0,"vtkDataObject::FIELD_ASSOCIATION_POINTS",arrayname)
 	Threshold.Update()
 	return Threshold.GetOutput()
 
