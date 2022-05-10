@@ -9,11 +9,21 @@ import argparse
 class CoronaryCenterlines():
 	def __init__(self,Args):
 		self.Args=Args
+		
+		if self.Args.InputFolderName is None:
+			self.Args.InputFolderName=glob("./CTA_SimVascular/Meshes/*-mesh-complete")[0]
+		if self.Args.OutputFolderName is None:
+			self.Args.OutputFolderName="Results/"
+
+
 		#Create a centerlines folder inside the user-defined Output Folder
 		print ("Creating the output directory: %s/Centerlines/"%self.Args.OutputFolderName)
 		os.system("mkdir %s/Centerlines/"%self.Args.OutputFolderName)
 		#Find all of the centerlines inside the mesh-surface folder.
-		filenamesLCA=sorted(glob("%s/mesh-surfaces/wall_LCA*.vtp"%self.Args.InputFolderName))
+		filenamesLCA=sorted(glob("%s/mesh-surfaces/wall_LAD*.vtp"%self.Args.InputFolderName))
+		filenamesLCA+=sorted(glob("%s/mesh-surfaces/wall_Diag*.vtp"%self.Args.InputFolderName))
+		filenamesLCA+=sorted(glob("%s/mesh-surfaces/wall_Ramus*.vtp"%self.Args.InputFolderName))
+		filenamesLCA+=sorted(glob("%s/mesh-surfaces/wall_LCx*.vtp"%self.Args.InputFolderName))
 		filenamesRCA=sorted(glob("%s/mesh-surfaces/wall_RCA*.vtp"%self.Args.InputFolderName))
 		self.filenames=filenamesLCA+filenamesRCA
 		print ("Found %d LCA files inside the mesh-surface folder"%len(filenamesLCA))
@@ -58,10 +68,10 @@ if __name__=='__main__':
 	parser = argparse.ArgumentParser(description="This script will compute the centerlines of coronary arteries using the 'mesh-complete' that simvascular outputs")
 
         #Input filename of the perfusion map
-	parser.add_argument('-ifolder', '--InputFolderName', type=str, required=True, dest="InputFolderName",help="The path to the mesh-complete folder")
+	parser.add_argument('-ifolder', '--InputFolderName', type=str, required=False, dest="InputFolderName",help="The path to the mesh-complete folder. If none, select 'CTA_Simvascular/Meshes/*-mesh-complete'.")
 
         #Resolution of the Averaging Procedure
-	parser.add_argument('-ofolder', '--OutputFolderName', type=str, required=True, dest="OutputFolderName",help="The folder path for the output folder that will contain centerline files")
+	parser.add_argument('-ofolder', '--OutputFolderName', type=str, required=False, dest="OutputFolderName",help="The folder path for the output folder that will contain centerline files. If not, select 'Results'")
 
 
 	args=parser.parse_args()

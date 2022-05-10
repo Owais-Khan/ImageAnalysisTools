@@ -157,7 +157,7 @@ def ExtractSurface(volume):
 	return surface.GetOutput()
         
 #Print the progress of the loop
-def PrintProgress(self,i,N,progress_old):
+def PrintProgress(i,N,progress_old):
 	progress_=(int((float(i)/N*100+0.5)))
 	if progress_%10==0 and progress_%10!=progress_old: print ("    Progress: %d%%"%progress_)
 	return progress_%10

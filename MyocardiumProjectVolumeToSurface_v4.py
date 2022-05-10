@@ -131,11 +131,11 @@ class ImageAnalysisMyocardiumMorphVolumeToSurface():
 		print ("------ Filling these values with MBF from Neighbouring points")
 		for PointId in NodesZeroMBF:
 			coord_=Surface.GetPoint(PointId)
-			Dist_=np.array([np.linalg.norm(coord_-np.array(Surface.GetPoint(i))) for i in range(Npts)])
-			DistSortIds_=np.argsort(Dist_)
-			MBF_closest_=[MBF["MBF_WallAveraged"][i] for i in DistSortIds_]
-			MBF_closest_=[Value for Value in MBF_closest_ if Value!=-999.0]
-			MBF["MBF_WallAveraged"][PointId]=np.average(MBF_closest_[0:5])
+			#Dist_=np.array([np.linalg.norm(coord_-np.array(Surface.GetPoint(i))) for i in range(Npts)])
+			#DistSortIds_=np.argsort(Dist_)
+			#MBF_closest_=[MBF["MBF_WallAveraged"][i] for i in DistSortIds_]
+			#MBF_closest_=[Value for Value in MBF_closest_ if Value!=-999.0]
+			MBF["MBF_WallAveraged"][PointId]=100#np.average(MBF_closest_[0:5])
 			MBF["Weights"][PointId]=1
 			
 
@@ -143,13 +143,19 @@ class ImageAnalysisMyocardiumMorphVolumeToSurface():
 		#Get 75th Percentile MBF
 		MBF_75Q=np.percentile(MBF["MBF_WallAveraged"],0.75)
 		MBF_50Q=np.percentile(MBF["MBF_WallAveraged"],0.50)
+		MBF_AVG=np.average(MBF["MBF_WallAveraged"])#percentile(MBF["MBF_WallAveraged"],0.50)
+		print ("--- The 75 Percentile MBF is: %.04f"%MBF_75Q)
+		print ("--- The 50 Percentile MBF is: %.04f"%MBF_50Q)
+		print ("--- The Average MBF is: %.04f"%MBF_AVG)
 
 		#Add Array to the Surface
 		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"],"MBF_WallAveraged")
 		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_75Q,"MBF_Normalized75Q")
 		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_50Q,"MBF_Normalized50Q")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_AVG,"MBF_NormalizedAVG")
 		Surface=SurfaceAddArray(Surface,MBF["Weights"],"Weights")
-
+		
+		print ("Writing Surface: %s"%self.Args.OutputSurface)
 		WriteVTPFile(self.Args.OutputSurface,Surface)
 	
         #Print the progress of the loop
@@ -163,7 +169,8 @@ class ImageAnalysisMyocardiumMorphVolumeToSurface():
 
 if __name__=="__main__":
         #Description
-	parser = argparse.ArgumentParser(description="This script will dilate the myocardium by a specified vaue")
+	parser = argparse.ArgumentParser(description="This script will project the volumetric MBF map to the surface map.")
+
 	parser.add_argument('-InputVolume', '--InputVolume', type=str, required=True, dest="InputVolume",help="The vtu file that contains the myocardial volume")
         
 	parser.add_argument('-InputSurface', '--InputSurface', type=str, required=True, dest="InputSurface",help="The vtp file that contains the myocardium surface")
