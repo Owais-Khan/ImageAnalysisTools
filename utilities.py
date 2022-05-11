@@ -47,6 +47,12 @@ def ReadVTIFile(FileName):
 	reader.Update()
 	return reader.GetOutput()
 
+def WriteVTIFile(FileName,Data):
+	writer=vtk.vtkXMLImageDataWriter()
+	writer.SetFileName(FileName)
+	writer.SetInputData(Data)
+	writer.Update()
+
 def WriteVTUFile(FileName,Data):
 	writer=vtk.vtkXMLUnstructuredGridWriter()
 	writer.SetFileName(FileName)

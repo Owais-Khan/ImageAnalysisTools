@@ -9,6 +9,16 @@ To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
 ```
+## Image Analysis Tools
+The following scripts provide useful tools to perform Image Analysis operations:
+
+### ImageAnalysisLabelImage.py
+Label the Image (in .vti format) based on the Surface segmentation (in .vtp format). The surface must be closed with no holes or gaps. 
+
+```console
+foo@bar:~$ python ImageAnalysisLabelImage.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/segmented/surface.vtp -OutputFileName /path/to/outputimage.vti
+``` 
+
 
 ## 1.0 Dynamic CTA Perfusion Analysis
 Dynamic CT Myocardial Perfusion Imaging (CT-MPI) is an advanced imaging modality that can be used to image the blood flow inside myocardial tissue. The image acquistion pipeline generally involves four steps: i) inducing vasodilator-mediate hypermia followed by injection of iodine-based contrast agent; ii) scanning myocardium for 20-30 seconds, providing ~15 time points during the passage of contrast; iii) extracting time attenuation curves in an artery (typically ascending aorta) and myocardium; and iv) calculating myocardial blood flow using a tracer kinetic model. 

@@ -6,7 +6,7 @@ from glob import glob
 from scipy.spatial import distance as DISTANCE
 import argparse
 from utilities import *
-
+from time import time
 class ImageAnalysisLabelImage():
 	def __init__(self,Args):
 		self.Args=Args
@@ -20,6 +20,7 @@ class ImageAnalysisLabelImage():
 		print ("--- Loading the Surface: %s"%self.Args.InputSurface)
 		Surface=ReadVTPFile(self.Args.InputSurface)
 
+
 		#Creata a points array
 		print ("--- Converting Image into Point Array. This may take some time...")
 		PointsVTK=vtk.vtkPoints()
@@ -27,9 +28,7 @@ class ImageAnalysisLabelImage():
 		progress_=0
 		for i in range(Image.GetNumberOfPoints()):
 			PointsVTK.SetPoint(i,Image.GetPoint(i))
-			if i==1000: break
 			progress_=PrintProgress(i,Image.GetNumberOfPoints(),progress_)
-
 
 		print ("--- Converting Image Points into a Polydata")
 		#Convert into a polydata format
@@ -42,13 +41,20 @@ class ImageAnalysisLabelImage():
 		selectEnclosed.SetInputData(pdata_points) #Points in the Image
 		selectEnclosed.SetSurfaceData(Surface) #Surface Model
 		selectEnclosed.Update()
-	
 
+		print ("--- Copying Image Labels to a Numpy Array")
 		#Yes or No for all of the points in the Image
-		print (dir(selectEnclosed))
-		for i in range(1000):
-			print(selectEnclosed.GetOutput().GetPointData().GetArray('SelectedPoints').GetTuple(i))
-		exit(1)
+		ImageLabels=np.zeros(Image.GetNumberOfPoints())
+		for i in range(Image.GetNumberOfPoints()):
+			ImageLabels[i]=selectEnclosed.GetOutput().GetPointData().GetArray('SelectedPoints').GetTuple(i)[0]
+
+		print ("--- Appending Numpy Image Labels to the VTK Image Volume")
+		print ("------ 1=aorta, 2=left coronary tree and 3== right coronary tree and 0=none") 
+		ImageNew=SurfaceAddArray(Image,ImageLabels,"Labels")
+
+		print ("--- Writing Image to the Output file: %s"%self.Args.OutputFileName)
+		WriteVTIFile(self.Args.OutputFileName,ImageNew)	
+
 
 if __name__=="__main__":
         #Description
@@ -59,6 +65,8 @@ if __name__=="__main__":
 
 	#Input filename of the coronary segmented surface.
 	parser.add_argument('-InputSurface', '--InputSurface', type=str, required=True, dest="InputSurface",help="File name of the input surface generated from simvascular, including the caps. This is the mesh-complete.exterior.vtp file")
+	
+	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=True, dest="OutputFileName",help="File name in which to store the Image along with the Labels array.")
     
 	args=parser.parse_args()
 	ImageAnalysisLabelImage(args).Main()
