@@ -1,12 +1,9 @@
 import vtk
 import numpy as np
-import scipy as sp
 import os
 from glob import glob
-from scipy.spatial import distance as DISTANCE
 import argparse
 from utilities import *
-from time import time
 class ImageAnalysisLabelImage():
 	def __init__(self,Args):
 		self.Args=Args
