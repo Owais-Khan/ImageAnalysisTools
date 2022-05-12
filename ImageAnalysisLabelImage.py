@@ -29,7 +29,7 @@ class ImageAnalysisLabelImage():
 		for i in range(Image.GetNumberOfPoints()):
 			PointsVTK.SetPoint(i,Image.GetPoint(i))
 			progress_=PrintProgress(i,Image.GetNumberOfPoints(),progress_)
-
+		
 		print ("--- Converting Image Points into a Polydata")
 		#Convert into a polydata format
 		pdata_points = vtk.vtkPolyData()
@@ -40,14 +40,16 @@ class ImageAnalysisLabelImage():
 		selectEnclosed = vtk.vtkSelectEnclosedPoints()
 		selectEnclosed.SetInputData(pdata_points) #Points in the Image
 		selectEnclosed.SetSurfaceData(Surface) #Surface Model
-		selectEnclosed.SetTolerance(1e-10)
+		selectEnclosed.SetTolerance(0.00000000001)
 		selectEnclosed.Update()
 
 		print ("--- Copying Image Labels to a Numpy Array")
 		#Yes or No for all of the points in the Image
-		ImageLabels=np.zeros(Image.GetNumberOfPoints())
-		for i in range(Image.GetNumberOfPoints()):
-			ImageLabels[i]=selectEnclosed.GetOutput().GetPointData().GetArray('SelectedPoints').GetTuple(i)[0]
+		ImageLabels=vtk_to_numpy(selectEnclosed.GetOutput().GetPointData().GetArray('SelectedPoints'))
+
+		#ImageLabels=np.zeros(Image.GetNumberOfPoints())
+		#for i in range(Image.GetNumberOfPoints()):
+		#	ImageLabels[i]=selectEnclosed.GetOutput().GetPointData().GetArray('SelectedPoints').GetTuple(i)[0]
 
 		print ("--- Appending Numpy Image Labels to the VTK Image Volume")
 		print ("------ 1=aorta, 2=left coronary tree and 3== right coronary tree and 0=none") 
