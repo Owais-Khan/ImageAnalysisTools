@@ -13,8 +13,7 @@ foo@bar:~$ python [ScriptName.py] -h
 The following scripts provide useful tools to perform Image Analysis operations:
 
 ### ImageAnalysisLabelImage.py
-Label the Image (in .vti format) based on the Surface segmentation (in .vtp format). The surface must be closed with no holes or gaps. 
-
+Label the Image (in .vti format) based on the Surface segmentation (in .vtp format). The surface must be closed with no holes or gaps. The output image will contain Labels=0 for outside surface and Labels=1 for inside surface.
 ```console
 foo@bar:~$ python ImageAnalysisLabelImage.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/segmented/surface.vtp -OutputFileName /path/to/outputimage.vti
 ``` 

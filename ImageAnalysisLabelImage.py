@@ -40,6 +40,7 @@ class ImageAnalysisLabelImage():
 		selectEnclosed = vtk.vtkSelectEnclosedPoints()
 		selectEnclosed.SetInputData(pdata_points) #Points in the Image
 		selectEnclosed.SetSurfaceData(Surface) #Surface Model
+		selectEnclosed.SetTolerance(1e-10)
 		selectEnclosed.Update()
 
 		print ("--- Copying Image Labels to a Numpy Array")
