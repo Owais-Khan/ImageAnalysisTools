@@ -1,5 +1,4 @@
-# ImageAnalysisTools
-The scripts in this repository provide useful tools to analyze medical images. You will need to set up the following libraries for majority of these scripts:
+The scripts in this repository are useful tools to analyze medical image data. You will need to set up the following libraries for majority of these scripts:
 1. vtk 
 2. vmtk (see www.vmtk.org)
 3. numpy
@@ -9,10 +8,10 @@ To get help for any script, please type:
 ```console
 foo@bar:~$ python [ScriptName.py] -h
 ```
-## Image Analysis Tools
+# Image Analysis Tools
 The following scripts provide useful tools to perform Image Analysis operations:
 
-### ImageAnalysisLabelImage.py
+## ImageAnalysisLabelImage.py
 Label the Image (in .vti format) based on the Surface segmentation (in .vtp format). The surface must be closed with no holes or gaps. The output image will contain Labels=0 for outside surface and Labels=1 for inside surface.
 ```console
 foo@bar:~$ python ImageAnalysisLabelImage.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/segmented/surface.vtp -OutputFileName /path/to/outputimage.vti
