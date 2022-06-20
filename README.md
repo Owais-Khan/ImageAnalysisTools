@@ -16,6 +16,12 @@ Label the Image (in .vti format) based on the Surface segmentation (in .vtp form
 ```console
 foo@bar:~$ python ImageAnalysisLabelImage.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/segmented/surface.vtp -OutputFileName /path/to/outputimage.vti
 ``` 
+## ImageAnalysisLabelCenterlines.py
+Label the image (in .vti format) based on the centerline surface file (in .vtp format). The centerlines are obtained from VMTK. The output image will contain Labels=0 for all cells outside the centerline and Labels=1 for all cells on the centerline
+```console
+foo@bar:~$ python ImageAnalysisLabelCenterlines.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/centerlinesfile.vtp -OutputFileName /path/to/outputimage.vti
+```
+
 
 
 ## 1.0 Dynamic CTA Perfusion Analysis
