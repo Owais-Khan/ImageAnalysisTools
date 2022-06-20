@@ -226,6 +226,14 @@ def SurfaceAddArray(Surface,Array,ArrayName):
 	Surface.Modified()
 	return Surface
 
+def SurfaceAddCellArray(Surface,Array,ArrayName):
+        SurfaceArray=numpy_to_vtk(Array,deep=True)
+        SurfaceArray.SetName(ArrayName)
+        Surface.GetCellData().AddArray(SurfaceArray)
+        Surface.Modified()
+        return Surface
+
+
 def ProjectedPointOnLine(coord_,Centroid,Apex,Norm1):
 	#Find the location (coord,distance) on the LV Apex-Base axis
 	dist_P_to_line_=np.sqrt(vtk.vtkLine.DistanceToLine(coord_,Centroid,Apex))
