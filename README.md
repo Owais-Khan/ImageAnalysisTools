@@ -21,7 +21,12 @@ Label the image (in .vti format) based on the centerline surface file (in .vtp f
 ```console
 foo@bar:~$ python ImageAnalysisLabelCenterlines.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/centerlinesfile.vtp -OutputFileName /path/to/outputimage.vti
 ```
-
+## ImageAnalysisCenterlineFromSections.py
+Compute a centerline by taking the centroid of each of the sections of a surface. We can control the smoothing of the centerline using XX parameters. The OutputFolder is optional. The centerline file will be stored in the OutputFolder/CenterlineFromSections.vtp for paraview-readable format and OutputFOlder/CenterlineFromSections.txt for an ascii format
+```console
+foo@bar:~$ python CenterlineFromSections.py -InputSurface /path/to/input/surface.vtp -OutputFolder /path/to/output/folder
+```
+---
 
 
 ## 1.0 Dynamic CTA Perfusion Analysis
