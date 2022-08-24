@@ -45,6 +45,9 @@ class CenterlineDeviation():
 	
 		Mag_=np.zeros(BaseCL_.GetNumberOfPoints())
 		PolyData=vtk.vtkAppendPolyData()
+
+		outfile = open ("CenterlineDeviation_Results.txt",'w')
+		outfile.write('PointID,Distance,Deviation_Magnitude\n')
 		
 		#Compute difference between centerlines	
 		Length_=0
@@ -56,10 +59,10 @@ class CenterlineDeviation():
 			if i>0:
 				LengthIncrement_=np.sqrt(sum((BaseCLPts_[i]-BaseCLPts_[i-1])**2))
 				Length_+=LengthIncrement_
-	
+		
 			if Length_<Length[1]:
 				Mag_[i]=np.sqrt((points[0][0]-points[1][0])**2+(points[0][1]-points[1][1])**2+(points[0][2]-points[1][2])**2)
-			
+					
 				PolyData.AddInputData(ConvertPointsToLine(points))
 				PolyData.Update()
 			else:
@@ -67,6 +70,8 @@ class CenterlineDeviation():
 				print ("Stopping...")
 				break
 		
+			outfile.write("%d,%.05f,%.05f\n"%(i,Length_,Mag_[i]))
+
 		#Add array and write file	
 		WriteVTPFile("%s/CenterlineDeviation.vtp"%self.Args.OutputFolder,PolyData.GetOutput())
 		CenterlineData=ReadVTPFile("%s/CenterlineDeviation.vtp"%self.Args.OutputFolder)
