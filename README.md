@@ -32,6 +32,7 @@ Compute the difference between two clipped and registered centerline by finding 
 stored in a paraview-readable format under CenterlineDeviation_Results/CenterlineDeviations.vtp. The OutputFolder is optional. 
 ```console
 foo@bar:~$ python ImageAnalysisCenterlineDeviation.py -InputCenterline /path/to/input/centerline.vtp -BaseCenterline /path/to/reference/centerline.vtp -OutputFolder /path/to/output/folder
+```
 ---
 
 
