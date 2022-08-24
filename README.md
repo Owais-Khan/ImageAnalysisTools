@@ -24,8 +24,14 @@ foo@bar:~$ python ImageAnalysisLabelCenterlines.py -InputFileName /path/to/volum
 ## ImageAnalysisCenterlineFromSections.py
 Compute a centerline by taking the centroid of each of the sections of a surface. We can control the smoothing of the centerline using XX parameters. The OutputFolder is optional. The centerline file will be stored in the OutputFolder/CenterlineFromSections.vtp for paraview-readable format and OutputFOlder/CenterlineFromSections.txt for an ascii format
 ```console
-foo@bar:~$ python CenterlineFromSections.py -InputSurface /path/to/input/surface.vtp -OutputFolder /path/to/output/folder
+foo@bar:~$ python ImageAnalysisCenterlineFromSections.py -InputSurface /path/to/input/surface.vtp -OutputFolder /path/to/output/folder
 ```
+
+## ImageAnalysisCenterlineDeviation.py
+Compute the difference between two clipped and registered centerline by finding the normals between the reference line and an input line. The deviation will be
+stored in a paraview-readable format under CenterlineDeviation_Results/CenterlineDeviations.vtp. The OutputFolder is optional. 
+```console
+foo@bar:~$ python ImageAnalysisCenterlineDeviation.py -InputCenterline /path/to/input/centerline.vtp -BaseCenterline /path/to/reference/centerline.vtp -OutputFolder /path/to/output/folder
 ---
 
 
