@@ -16,7 +16,7 @@ class CenterlineFromSections():
 		self.Args=Args
 
 	def Main(self):
-		if self.Args.OutputFolder == None:
+		if self.Args.OutputFolder is None:
 			self.Args.OutputFolder="Results"
 			os.system("mkdir %s"%self.Args.OutputFolder)
 
