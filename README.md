@@ -28,7 +28,7 @@ foo@bar:~$ python ImageAnalysisCenterlineFromSections.py -InputSurface /path/to/
 ```
 
 ## ImageAnalysisCenterlineDeviation.py
-Compute the difference between two clipped and registered centerline by finding the normals between the reference line and an input line. The deviation will be
+Compute the difference between two clipped and registered centerlines by finding the normal between the reference line and an input line. The deviation will be
 stored in a paraview-readable format under CenterlineDeviation_Results/CenterlineDeviations.vtp. The OutputFolder is optional. 
 ```console
 foo@bar:~$ python ImageAnalysisCenterlineDeviation.py -InputCenterline /path/to/input/centerline.vtp -BaseCenterline /path/to/reference/centerline.vtp -OutputFolder /path/to/output/folder
