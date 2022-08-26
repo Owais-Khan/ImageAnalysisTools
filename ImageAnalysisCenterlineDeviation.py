@@ -33,7 +33,6 @@ class CenterlineDeviation():
 			print ("--- The Length of %s is: %.04f"%(filename,Dist_))
 		
 		#Resample lines to have equal amount of points
-		#Issue - not resampling models properly
 		resampleLength=Length[0]/self.Args.NPoints  
 		os.system("vmtkcenterlineresampling -ifile %s -length %f -ofile %s"%(Centerlines[0],resampleLength,self.Args.OutputFolder+'/'+Centerlines[0].split('/')[-1]))
 
