@@ -21,6 +21,13 @@ Label the image (in .vti format) based on the centerline surface file (in .vtp f
 ```console
 foo@bar:~$ python ImageAnalysisLabelCenterlines.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/centerlinesfile.vtp -OutputFileName /path/to/outputimage.vti
 ```
+## ImageAnalysisVTKToRaw.py
+This script will convert a ".vti" image stack to a .raw file. This works seamlessly with the output of the ImageAnalysisLabelImage.py and ImageAnalysisLabelCenterlines.py (see above). You can chose to output a 0D array or a 3D array with the same shape as that of the original image stack. 
+ 
+```console
+foo@bar:~$ python ImageAnalysisVTKToRaw.py -InputFileName /path/to/input/image/file.vti -ReshapeArray 1
+```
+
 ## ImageAnalysisCenterlineFromSections.py
 Compute a centerline by taking the centroid of each of the sections of a surface. We can control the smoothing of the centerline using XX parameters. The OutputFolder is optional. The centerline file will be stored in the OutputFolder/CenterlineFromSections.vtp for paraview-readable format and OutputFOlder/CenterlineFromSections.txt for an ascii format
 ```console
@@ -33,6 +40,8 @@ stored in a paraview-readable format under CenterlineDeviation_Results/Centerlin
 ```console
 foo@bar:~$ python ImageAnalysisCenterlineDeviation.py -InputCenterline /path/to/input/centerline.vtp -BaseCenterline /path/to/reference/centerline.vtp -OutputFolder /path/to/output/folder
 ```
+
+
 ---
 
 
