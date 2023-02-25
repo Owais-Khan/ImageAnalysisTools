@@ -40,6 +40,11 @@ stored in a paraview-readable format under CenterlineDeviation_Results/Centerlin
 ```console
 foo@bar:~$ python ImageAnalysisCenterlineDeviation.py -InputCenterline /path/to/input/centerline.vtp -BaseCenterline /path/to/reference/centerline.vtp -OutputFolder /path/to/output/folder
 ```
+## ImageAnalysisProjectImageToMesh.py
+This script can be used to project data from image/surface_mesh/volume_mesh onto another surface_mesh/volume_mesh. The -InputFileName1 is the source data and -InputFileName2 is the target mesh onto which the data must be projected. The -OutputFileName is optional and the script will use the addition of the two InputFileName as the OutputFileName.
+```console
+foo@bar:~$ python ImageAnalysisProjectImageToMesh.py -InputFileName1 /path/to/source/data/image/or/mesh -InputFileName2 /path/to/target/mesh/
+```
 
 
 ---
