@@ -46,6 +46,13 @@ This script can be used to project data from image/surface_mesh/volume_mesh onto
 foo@bar:~$ python ImageAnalysisProjectImageToMesh.py -InputFileName1 /path/to/source/data/image/or/mesh -InputFileName2 /path/to/target/mesh/
 ```
 
+## ImageAnalysisMovingAverageAlongCL.py
+This script can be used to take an average of the scalar value along the centerline of a lumen.The scalar value should be stored as an array in the lumen volume meshfile. Alongside with the vtu file, the scripts need the centerline of the lumen and the surface of that. This script was originally written to extract the average pixel value along the centerline, which was the output of the ImageAnalysisProjectImageToMesh.py script. The Input arguments of the scripts are as follows: -InputVolumeFile takes the volumetric mesh including the scalar array, -InputCLFile takes the centerline of the lumen, -InputSurfaceFile takes the surface model file of the lumen. 
+```console
+foo@bar:~$ python ImageAnalysisMovingAverageAlongCL.py -InputVolumeFile /path/to/source/data/mesh -InputCLFile /path/to/target/centerline/file -InputSurfaceFile /path/to/target/model
+```
+
+
 
 ---
 
