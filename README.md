@@ -65,7 +65,11 @@ This script can be used to take an average of the scalar value along the centerl
 foo@bar:~$ python ImageAnalysisMovingAverageAlongCL.py -InputVolumeFile /path/to/source/data/mesh -InputCLFile /path/to/target/centerline/file -InputSurfaceFile /path/to/target/model
 ```
 
-
+## ImageAnalysisContrastDispersion.py
+This script can be used to take the centerlines files of the lumen containing the averaged pixel value array and estimate the averaged blood velocity along the lumen. The centerline files are the outputs of Moving Average script. The analysis is better to be done on the straight part of the lumen and only the upslope samples in time domain. The Input arguments of the scripts is: -InputFolder takes the folder containing all of the CLFiles.
+```console
+foo@bar:~$ python ImageAnalysisContrastDispersion.py -InputFolder /path/to/folder/containing/clfiles 
+```
 
 ---
 
