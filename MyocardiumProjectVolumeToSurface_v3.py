@@ -8,7 +8,7 @@ import argparse
 from utilities import *
 from PrincipleComponentAnalysis import PRINCIPLE_COMPONENT_ANALYSIS
 
-class ImageAnalysisMyocardiumMorphVolumeToSurface():
+class MyocardiumProjectVolumeToSurface():
 	def __init__(self,Args):
 		self.Args=Args
 
@@ -153,8 +153,8 @@ class ImageAnalysisMyocardiumMorphVolumeToSurface():
 
 if __name__=="__main__":
         #Description
-	parser = argparse.ArgumentParser(description="This script will dilate the myocardium by a specified vaue")
-	parser.add_argument('-InputVolume', '--InputVolume', type=str, required=True, dest="InputVolume",help="The vtu file that contains the myocardial volume")
+	parser = argparse.ArgumentParser(description="This script will project the volumetric data (thickness-averaged) of myocardium onto a pre-specific myocardial surface")
+	parser.add_argument('-InputVolume', '--InputVolume', type=str, required=True, dest="InputVolume",help="The vtu/vtk file that contains the myocardial volume")
         
 	parser.add_argument('-InputSurface', '--InputSurface', type=str, required=True, dest="InputSurface",help="The vtp file that contains the myocardium surface")
 
@@ -162,7 +162,7 @@ if __name__=="__main__":
 	parser.add_argument('-OutputSurface', '--OutputSurface', type=str, required=False, dest="OutputSurface",help="The vtp file to store the output surface with MBF projected from volume")
 	
 	args=parser.parse_args()
-	ImageAnalysisMyocardiumMorphVolumeToSurface(args).Main()
+	MyocardiumProjectVolumeToSurface(args).Main()
 
 		
 				

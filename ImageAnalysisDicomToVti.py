@@ -1,11 +1,12 @@
 import numpy as np
 import vtk
 import argparse
+from glob import glob
 
 class ImageAnalysisDicomToVti():
 	def __init__(self,Args):
 		self.Args=Args
-
+		self.Args.InputFolders=sorted(glob(self.Args.InputFolder+"/*"))
 	def Main(self):
 		#Loop over all of the input folders
 		for InputFolder_ in self.Args.InputFolders:
@@ -15,7 +16,7 @@ class ImageAnalysisDicomToVti():
         
 	def ConvertDicomDirectoryToVti(self,InputFolder):
 		#Output FileName
-		OutputFileName=InputFolder+InputFolder.split("/")[-2]
+		OutputFileName=self.Args.OutputFolder+InputFolder.split("/")[-2]
 		print ("--- Writing %s"%OutputFileName)
 		
 		#Read the dicom files in the directory
@@ -29,8 +30,10 @@ class ImageAnalysisDicomToVti():
 		Data.SetOrigin(Origin)
 		
 		#Write the Dicom File
-		self.WriteData(Data,OutputFileName+".vtk")
-		self.WriteVtiFile(Data,OutputFileName+".vti")
+		if self.Args.OutputFormat=="vtk":
+			self.WriteData(Data,OutputFileName+".vtk")
+		else:
+			self.WriteVtiFile(Data,OutputFileName+".vti")
 
 	def ReadVtiFile(self,FileName):
 		reader = vtk.vtkXMLImageDataReader()
@@ -63,7 +66,11 @@ if __name__=="__main__":
 	parser = argparse.ArgumentParser(description="This script will take input folder(s) and write a vti file in each folder")
 
         #Provide a path to the Magnitude Images
-	parser.add_argument('-InputFolders', '--InputFolders', nargs="+", required=True, dest="InputFolders",help="A single or a list of input folders, each of which contains dicom files in series.")
+	parser.add_argument('-InputFolder', '--InputFolder', required=True, dest="InputFolder",help="A folder that contains a bunch of sub-folders each with their own image stacks")
+	
+	parser.add_argument('-OutputFolder', '--OutputFolder', required=True, dest="OutputFolder",help="The folder name where the script stores all of the .vti and vtk image stacks.")
+	
+	parser.add_argument('-OutputFormat', '--OutputFormat', required=False, dest="OutputFormat", default="vti", help="The output format for the image stack. vti by default otherwise, you may specify vtk")
 
 	#Provide a scaling factor	
 	parser.add_argument('-ScalingFactor', '--ScalingFactor', type=float, required=False, default=1.0, dest="ScalingFactor", help="Scaling factor to convert images from one unit to another")

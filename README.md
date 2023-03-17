@@ -15,6 +15,12 @@ The following scripts provide useful tools to perform Image Analysis operations:
 Label the Image (in .vti format) based on the Surface segmentation (in .vtp format). The surface must be closed with no holes or gaps. The output image will contain Labels=0 for outside surface and Labels=1 for inside surface.
 ```console
 foo@bar:~$ python ImageAnalysisLabelImage.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/segmented/surface.vtp -OutputFileName /path/to/outputimage.vti
+
+
+## ImageAnalysisLabelImage.py
+Label the Image (in .vti format) based on the Surface segmentation (in .vtp format). The surface must be closed with no holes or gaps. The output image will contain Labels=0 for outside surface and Labels=1 for inside surface.
+```console
+foo@bar:~$ python ImageAnalysisLabelImage.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/segmented/surface.vtp -OutputFileName /path/to/outputimage.vti
 ``` 
 ## ImageAnalysisLabelCenterlines.py
 Label the image (in .vti format) based on the centerline surface file (in .vtp format). The centerlines are obtained from VMTK. The output image will contain Labels=0 for all cells outside the centerline and Labels=1 for all cells on the centerline
