@@ -11,6 +11,13 @@ foo@bar:~$ python [ScriptName.py] -h
 # Image Analysis Tools
 The following scripts provide useful tools to perform Image Analysis operations:
 
+## ImageAnalysisDicomToVti.py
+This script will take as an input a folder that contains a series of sub-folders, each with dicom files (for example, 4D Flow MRI, CT Perfusion). It will convert all of the image stacks in each of the sub-folder into a vti format file that can be read into paraview or analyzed using vtk library. You must also defined an output folder where are of the .vti files will be saved.
+```console
+foo@bar:~$  python ImageAnalysisDicomToVti.py -InputFolder /path/to/input/folder/ -OutputFolder ./path/to/output/folder/
+```
+
+
 ## ImageAnalysisLabelImage.py
 Label the Image (in .vti format) based on the Surface segmentation (in .vtp format). The surface must be closed with no holes or gaps. The output image will contain Labels=0 for outside surface and Labels=1 for inside surface.
 ```console
