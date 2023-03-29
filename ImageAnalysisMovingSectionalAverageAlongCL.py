@@ -79,7 +79,7 @@ class ImageAnalysisMovingAverageAlongCL():
         PixelValueAvgVTK = numpy_to_vtk(PixelValueAvg)
         PixelValueAvgVTK.SetName("AvgPixelValue")
         CLfile.GetPointData().AddArray(PixelValueAvgVTK)
-        OutputVolumeFile = f'OutputFolder/CenterLine_{self.num[-1]}.vtp'
+        OutputVolumeFile = f'CLOutputFolder/CenterLine_{self.num[-1]}.vtp'
         WriteVTPFile(OutputVolumeFile, CLfile)
         os.system("rm -rf ./abc.vtp")
             
