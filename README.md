@@ -35,10 +35,10 @@ Label the image (in .vti format) based on the centerline surface file (in .vtp f
 foo@bar:~$ python ImageAnalysisLabelCenterlines.py -InputFileName /path/to/volume/image.vti -InputSurface /path/to/centerlinesfile.vtp -OutputFileName /path/to/outputimage.vti
 ```
 ## ImageAnalysisVTKToRaw.py
-This script will convert a ".vti" image stack to a .raw file. This works seamlessly with the output of the ImageAnalysisLabelImage.py and ImageAnalysisLabelCenterlines.py (see above). You can chose to output a 0D array or a 3D array with the same shape as that of the original image stack. 
+This script will convert a ".vti" image stack to a .raw file. This works seamlessly with the output of the ImageAnalysisLabelImage.py and ImageAnalysisLabelCenterlines.py (see above). You can chose to output a 0D array or a 3D array with the same shape as that of the original image stack. You have to assigned the following options: -ArrayType, either as a PointData or CellData (use CellData for CenterlineLabels) and -ArrayName (use Labels for lumen and CenterlineLabels for centerline labels and -ArrayName (use Labels for lumen and CenterlineLabels for centerline labels)) 
  
 ```console
-foo@bar:~$ python ImageAnalysisVTKToRaw.py -InputFileName /path/to/input/image/file.vti -ReshapeArray 1
+foo@bar:~$ python ImageAnalysisVTKToRaw.py -InputFileName /path/to/input/image/file.vti -ReshapeArray 1 -ArrayType CellData -ArrayName CenterlineLabels
 ```
 
 ## ImageAnalysisCenterlineFromSections.py

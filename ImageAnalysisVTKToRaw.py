@@ -28,8 +28,13 @@ class ImageAnalysisVTKToRaw():
 		Spacing=ImageDataVTI.GetSpacing()
 		print ("The spacing of the image is: ",Spacing)
 			
-	
-		Labels=vtk_to_numpy(ImageDataVTI.GetPointData().GetArray("Labels"))
+		if self.Args.ArrayType=="CellData":	
+			Labels=vtk_to_numpy(ImageDataVTI.GetCellData().GetArray(self.Args.ArrayName))
+		elif self.Args.ArrayType=="PointData":
+			Labels=vtk_to_numpy(ImageDataVTI.GetPointData().GetArray(self.Args.ArrayName))
+		else:
+			print ("Array Type not understood...")
+			exit(1)
 		ImageValues=vtk_to_numpy(ImageDataVTI.GetPointData().GetArray("Scalars_"))
 		
 		#Reshape the Labels	
@@ -48,12 +53,16 @@ class ImageAnalysisVTKToRaw():
 
 
 if __name__=="__main__":
-        parser = argparse.ArgumentParser(description="This script will convert the vtk image stack into 2D slices written in .raw format.")
+        
+	parser = argparse.ArgumentParser(description="This script will convert the vtk image stack into 2D slices written in .raw format.")
 
-        parser.add_argument('-InputFileName', '--InputFileName', type=str, required=True, dest="InputFileName",help="The file name containing the .vtk data that needs to be written to .raw format")
+	parser.add_argument('-InputFileName', '--InputFileName', type=str, required=True, dest="InputFileName",help="The file name containing the .vtk data that needs to be written to .raw format")
+        
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=True, dest="ArrayName",help="The array name in the .vti file that contains the labels.")
+	parser.add_argument('-ArrayType', '--ArrayType', type=str, required=False, default="PointData", dest="ArrayType",help="CellData or PointData")
        
-        parser.add_argument('-ReshapeArray', '--ReshapeArray', type=int, required=False,default=0, dest="ReshapeArray",help="1=Reshape the array to original image stack shape, 0 (default)=Keep a 0D array of size=IxJxK")
+	parser.add_argument('-ReshapeArray', '--ReshapeArray', type=int, required=False,default=0, dest="ReshapeArray",help="1=Reshape the array to original image stack shape, 0 (default)=Keep a 0D array of size=IxJxK")
 
-        args=parser.parse_args()
-        ImageAnalysisVTKToRaw(args).Main()
+	args=parser.parse_args()
+	ImageAnalysisVTKToRaw(args).Main()
  
