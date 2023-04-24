@@ -19,6 +19,14 @@ class ImageAnalysisAdvectionDiffusionAlongCL():
     def __init__(self,Args):
         self.Args = Args
         
+    def MAFilter(self):
+        input_ = self.x_denoised
+        window_length = 20
+        FilteredSignal = np.zeros(np.size(input_)-window_length)
+        for point in np.size(input_):
+            FilteredSignal[point] = np.average(input_[point:point+window_length])
+        return FilteredSignal
+        
     def Main(self):
         
         #Store the cl file names inside the input folder
@@ -35,20 +43,21 @@ class ImageAnalysisAdvectionDiffusionAlongCL():
             PixelValArray[:,i] = CLFile.GetPointData().GetArray("AvgPixelValue")
         
         #RadiusArray = CLFile.GetPointData().GetArray("MaximumInscribedSphereRadius")
-        
+        '''
         PixelValArray = np.delete(PixelValArray, (-1), axis = 0)
         PixelValArray = np.delete(PixelValArray, (-1), axis = 0)
         PixelValArray = np.delete(PixelValArray, (-1), axis = 0)
-        
+        '''
         # Taking the linear part of the lumen and the upslope samples
-        PixelValArray = PixelValArray[:,0:7] 
-        
+        PixelValArray = PixelValArray[:-3,0:7] 
+        self.PixelValArray = PixelValArray
         
         #Calculating Velocity
         #D = 0.01
         point_1 = CLFile.GetPoint(1)
         point_2 = CLFile.GetPoint(2)
         x_step = sqrt((point_1[0] - point_2[0])**2+(point_1[1] - point_2[1])**2+(point_1[2] - point_2[2])**2) #Calculate the distance between the CL points
+        
         print(x_step)
         time_step = 2.69#4 #assuming the heart-rate to be 60-per-min and the pictures are taken every 4-cycle
         (nx, nt) = PixelValArray.shape
@@ -71,10 +80,12 @@ class ImageAnalysisAdvectionDiffusionAlongCL():
             exit(1)'''
         dc_dt /= nx
         x_denoised = PixelValArray.sum(axis = 1)/nx
+        self.x_denoised = x_denoised
+        x_MAFiltered = ImageAnalysisAdvectionDiffusionAlongCL().MAFilter()
         model = LinearRegression()
-        model.fit(x_arr.reshape(-1, 1),x_denoised.reshape(-1, 1))
+        model.fit(x_arr.reshape(-1, 1),x_MAFiltered.reshape(-1, 1))
         dc_dx += model.coef_[0][0]
-        plt.scatter(x_arr, x_denoised, color = 'black')
+        plt.scatter(x_arr, x_MAFiltered, color = 'black')
         pred = model.predict(x_arr.reshape(-1, 1))
         plt.plot(x_arr.reshape(-1, 1), pred.reshape(-1, 1), color = 'red')
         plt.text(12, 183, f"slope = {int(model.coef_[0][0]*100)/100}", rotation = 2)
