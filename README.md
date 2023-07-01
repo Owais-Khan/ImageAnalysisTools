@@ -81,13 +81,23 @@ Dynamic CT Myocardial Perfusion Imaging (CT-MPI) is an advanced imaging modality
 
 *Figure 1: Stress dynamic CT-MPI shown at three of 15 time points to highlight the passage of contrast. The right panel shows arterial input function (AIF) and myocardial tissue time attenuation curves (TAC) that are needed in tracer kinetic model to compute myocardial blood flow. Green=Arterial input function, Red=Myocardial time attenuation curve.* 
 
+
+### 1.1 Projecting Volumetric MBF to Surface Maps.
+MBF maps are volumetric and often challenging to visualize and interpret. We can project these volumetric maps on the surface of the myocardiam, which makes it easier to visualize the average MBF across each slice. The script will also fill any holes in the geometry with data interpolated from the neighbouring nodes. 
+
+```console
+python ImageAnalysisMyocardiumProjectVolumeToSurface.py -InputVolume MBF_Volume.vtk -InputSurface Ventricle_Surface_CTA.vtp
+```
+Optional Arguments:
+- ```-OutputSurface```: The filename used to store the output projected surface. If None, the output filename will be MBF_Volume_ProjectedMBF.vtp.
+
+
 ### 1.1 Computing Coronary Centerlines
 Coronary centerlines are needed to separate the myocardium into vessel-specific territories. The following spcript will take the "mesh-complete" folder from SimVascular as input and generate centerlines for each wall surface of coronary arteries. The centerlines will be stored inside "Centerlines" folder, the path to which you can assign as an argument. Please ensure to label the left and the right coronary trees as "wall_LCA\*.vtp" and "wall_RCA\*.vtp", respectively.
 
 ```console
 foo@bar:~$ python ImageAnalysisCoronaryCenterlines.py -ifolder /path/to/mesh-complete/ -ofolder /path/to/outputfolder/to/store/centerlines/
 ```
-
 
 ### 1.2 Quantifying Vessel-Specific Myocardial Territories using Dynamic CT-MPI and coronary CTA
  You may use the following pipeline to separate the myocardium into territories based on proximity to a coronary vessel. These territorty maps are useful to determine vessel-specific ischemia, assign boundary conditions or compute vessel-specific myocardial mass. You will need the following three items to perform this analysis:
