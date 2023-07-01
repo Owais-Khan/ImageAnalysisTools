@@ -5,16 +5,19 @@ from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import numpy as np
 import vtk
 import argparse
+from scipy import stats
 from utilities import *
 from PrincipleComponentAnalysis import PRINCIPLE_COMPONENT_ANALYSIS
 
-class ImageAnalysisMyocardiumProjectVolumeToSurface():
+class ImageAnalysisMyocardiumMorphVolumeToSurface():
 	def __init__(self,Args):
 		self.Args=Args
 
 		if self.Args.OutputSurface is None:
-			self.Args.OutputSurface=self.Args.InputVolume.replace(".vtk","_ProjectedMBF.vtp").replace(".vtu","_ProjectedMBF.vtp")
-			self.Args.OutputThickness=self.Args.InputVolume.replace(".vtk","_ProjectedMBFThicknessMap.dat").replace(".vtu","_ProjectedMBFThicknessMap.dat")
+			FileName_=self.Args.InputVolume.split("/")[-1]
+			self.Args.OutputSurface=self.Args.InputVolume.replace(FileName_,"MBF_Registered_ProjectedMBF.vtp")
+
+			self.Args.OutputThickness=self.Args.InputVolume.replace(FileName_,"MBF_Registered_ProjectedMBFThicknessMap.dat")
 		else:
 			self.Args.OutputThickness=self.Args.OutputSurface.replace(".vtp","_ThicknessMap.dat")
 			
@@ -52,6 +55,7 @@ class ImageAnalysisMyocardiumProjectVolumeToSurface():
 
 		#Get the number of points
 		Npts=Surface.GetNumberOfPoints()
+		Npts_v=Volume.GetNumberOfPoints()
                 
 		#Build a Cell Locator
 		VolumeLocator = vtk.vtkCellLocator()
@@ -59,8 +63,26 @@ class ImageAnalysisMyocardiumProjectVolumeToSurface():
 		VolumeLocator.BuildLocator()
 	
 		#Create a dictionary to store Average, Median and 75th Percentile MBF
-		MBF={"MBF_WallAveraged":np.zeros(Npts), "Weights":np.zeros(Npts)}
-	
+		MBF={"MBF_WallAveraged":np.zeros(Npts), "Weights":np.zeros(Npts), "MBF_WallAveraged_Filled":np.zeros(Npts)}
+
+		#Store all of the volumetric data in numpy array
+		print ("--- Store Raw MBF values in Numpy Array")
+		MBF_raw=vtk_to_numpy(Volume.GetPointData().GetArray("scalars"))
+		MBF_raw=MBF_raw[MBF_raw>0.0]	
+                
+		print ("--- Computing Statistics")
+                #Get 75th Percentile MBF
+		MBF_75Q=np.percentile(MBF_raw,75)
+		MBF_50Q=np.percentile(MBF_raw,50)
+		MBF_AVG=np.average(MBF_raw)
+		MBF_mode=float(stats.mode(MBF_raw)[0])
+		MBF_Koen=0.8*MBF_75Q
+		print ("------ Average MBF:            %.04f"%MBF_AVG)
+		print ("------ Mode of MBF:            %.04f"%MBF_mode)
+		print ("------ 75 Percentile MBF:      %.04f"%MBF_75Q)
+		print ("------ 50 Percentile MBF:      %.04f"%MBF_50Q)
+		print ("------ 80 of 75th Percentile:  %.04f"%MBF_Koen)
+
 		#Create an array to store surface points that have zero values
 		NodesZeroMBF=[]
 
@@ -105,6 +127,7 @@ class ImageAnalysisMyocardiumProjectVolumeToSurface():
 			if len(MBF_)>0:
 				#Get the average MBF values of all the point nodes
 				MBF["MBF_WallAveraged"][i]=np.average(MBF_)
+				MBF["MBF_WallAveraged_Filled"][i]=MBF["MBF_WallAveraged"][i]
 				MBF["Weights"][i]=len(MBF_)
 				
 				#Write the thickness values to output file
@@ -129,30 +152,23 @@ class ImageAnalysisMyocardiumProjectVolumeToSurface():
 		#Fill all of the empty values with values from average of the neightbouring cells.
 		print ("------ There are %d points that have Zero MBF value"%len(NodesZeroMBF))
 		print ("------ Filling these values with MBF from Neighbouring points")
+
 		for PointId in NodesZeroMBF:
 			coord_=Surface.GetPoint(PointId)
 			Dist_=np.array([np.linalg.norm(coord_-np.array(Surface.GetPoint(i))) for i in range(Npts)])
 			DistSortIds_=np.argsort(Dist_)
 			MBF_closest_=[MBF["MBF_WallAveraged"][i] for i in DistSortIds_]
 			MBF_closest_=[Value for Value in MBF_closest_ if Value!=-999.0]
-			MBF["MBF_WallAveraged"][PointId]=np.average(MBF_closest_[0:5])
+			MBF["MBF_WallAveraged_Filled"][PointId]=np.average(MBF_closest_[0:5])
 			MBF["Weights"][PointId]=1
 			
-
-		print ("--- Computing 50th and 75th percentiles")	
-		#Get 75th Percentile MBF
-		MBF_75Q=np.percentile(MBF["MBF_WallAveraged"],0.75)
-		MBF_50Q=np.percentile(MBF["MBF_WallAveraged"],0.50)
-		MBF_AVG=np.average(MBF["MBF_WallAveraged"])#percentile(MBF["MBF_WallAveraged"],0.50)
-		print ("--- The 75 Percentile MBF is: %.04f"%MBF_75Q)
-		print ("--- The 50 Percentile MBF is: %.04f"%MBF_50Q)
-		print ("--- The Average MBF is: %.04f"%MBF_AVG)
-
 		#Add Array to the Surface
-		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"],"MBF_WallAveraged")
-		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_75Q,"MBF_Normalized75Q")
-		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_50Q,"MBF_Normalized50Q")
-		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged"]/MBF_AVG,"MBF_NormalizedAVG")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged_Filled"],"MBF_WallAveraged_Filled")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged_Filled"]/MBF_75Q,"MBF_Normalized75Q")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged_Filled"]/MBF_50Q,"MBF_Normalized50Q")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged_Filled"]/MBF_AVG,"MBF_NormalizedAVG")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged_Filled"]/MBF_mode,"MBF_NormalizedMode")
+		Surface=SurfaceAddArray(Surface,MBF["MBF_WallAveraged_Filled"]/MBF_Koen,"MBF_NormalizedKoen")
 		Surface=SurfaceAddArray(Surface,MBF["Weights"],"Weights")
 		
 		print ("Writing Surface: %s"%self.Args.OutputSurface)
@@ -171,7 +187,7 @@ if __name__=="__main__":
         #Description
 	parser = argparse.ArgumentParser(description="This script will project the volumetric MBF map to the surface map.")
 
-	parser.add_argument('-InputVolume', '--InputVolume', type=str, required=True, dest="InputVolume",help="The vtu/vtk file that contains the myocardial volume")
+	parser.add_argument('-InputVolume', '--InputVolume', type=str, required=True, dest="InputVolume",help="The vtu file that contains the myocardial volume")
         
 	parser.add_argument('-InputSurface', '--InputSurface', type=str, required=True, dest="InputSurface",help="The vtp file that contains the myocardium surface")
 
@@ -179,10 +195,9 @@ if __name__=="__main__":
 	parser.add_argument('-OutputSurface', '--OutputSurface', type=str, required=False, dest="OutputSurface",help="The vtp file to store the output surface with MBF projected from volume")
 	
 	args=parser.parse_args()
-	ImageAnalysisMyocardiumProjectVolumeToSurface(args).Main()
+	ImageAnalysisMyocardiumMorphVolumeToSurface(args).Main()
 
 		
 				
 			
 		
-
