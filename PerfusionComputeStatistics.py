@@ -6,8 +6,8 @@ import numpy as np
 import vtk
 import argparse
 from utilities import *
-import matplotlib.pyplot as plt
 import csv
+from scipy import stats
 
 class PerfusionComputeStatistics():
 	def __init__(self,Args):
@@ -41,24 +41,20 @@ class PerfusionComputeStatistics():
 		#Perform Statistics
 		Mean=np.average(DataArray)
 		Stdev=np.average(DataArray)
+		Mode=float(stats.mode(DataArray)[0])	
 		Median50=np.percentile(DataArray,50)
 		Median75=np.percentile(DataArray,75)
-		Median80=np.percentile(DataArray,80)
-		Median85=np.percentile(DataArray,85)
-		Median90=np.percentile(DataArray,90)
-		Median95=np.percentile(DataArray,95)
+		Koen80=0.8*Media75	
 
 		print ("Writing Statistics: %s/MBF_Statistics.dat"%self.Args.OutputFolder)
 		#Write the data to a file
 		outfile=open("%s/MBF_Statistics.dat"%self.Args.OutputFolder,'w')
-		outfile.write("Mean    MBF: %.05f\n"%Mean)
-		outfile.write("Stdev   MBF: %.05f\n"%Stdev)
-		outfile.write("Median  MBF: %.05f\n"%Median50)
-		outfile.write("Perc75  MBF: %.05f\n"%Median75)
-		outfile.write("Perc80  MBF: %.05f\n"%Median80)
-		outfile.write("Perc85  MBF: %.05f\n"%Median85)
-		outfile.write("Perc90  MBF: %.05f\n"%Median90)
-		outfile.write("Perc95  MBF: %.05f\n"%Median95)
+		outfile.write("Mean                : %.05f\n"%Mean)
+		outfile.write("Stdev               : %.05f\n"%Stdev)
+		outfile.write("Mode                : %.05f\n"%Mode)
+		outfile.write("Median              : %.05f\n"%Median50)
+		outfile.write("75th Perc           : %.05f\n"%Median75)
+		outfile.write("80% of 75th Perc    : %.05f\n"%Koen80)
 
 		outfile.close()
 
