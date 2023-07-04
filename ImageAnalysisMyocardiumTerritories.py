@@ -5,37 +5,50 @@ import os
 from glob import glob
 from scipy.spatial import distance as DISTANCE
 import argparse
+from utilities import *
 
-class CoronaryPerfusionTerritories():
+class ImageAnalysisMyocardiumCoronaryTerritories():
 	def __init__(self,Args):
 		#Input argumenets
 		self.Args=Args
 
-		#The LV filename that contains MBF
-		self.VentricleFileName=self.Args.InputFileName
-
 		#Coronary Centerline Files
-		CenterlineFileNamesPaths=sorted(glob("%s/wall_*cl.vtp"%self.Args.CenterlinesFolder))
+		CenterlineFileNamesPaths=sorted(glob("%s/*.vtp"%self.Args.CenterlinesFolder))
 		CenterlineFileNames=[filename.split("/")[-1] for filename in CenterlineFileNamesPaths] 
               
 		#Separate the Coronary Territories into Left and Right side 
 		self.CenterlineFileNamesPaths=[]
 		self.CenterlineFileNames=[]
 		for i in range(len(CenterlineFileNames)):
-			if CenterlineFileNames[i].find("RCA")>=0 and CenterlineFileNames[i].find("left")>=0:
+			if CenterlineFileNames[i].find("L_")>=0:
 				self.CenterlineFileNames.append(CenterlineFileNames[i])
 				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
-			if CenterlineFileNames[i].find("LCA")>=0:
+			if CenterlineFileNames[i].find("R_")>=0:
 				self.CenterlineFileNames.append(CenterlineFileNames[i])
 				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
+
+		count=0
+		for CenterlineFileName_ in CenterlineFileNames:
+			print ("Centerline %d is: %s"%(count,CenterlineFileName_))
+			count+=1
 
 	def main(self):
 		#Get the areas for all of the surface caps
-		Centroids=self.Get_Centroids(self.CenterlineFileNamesPaths,self.CenterlineFileNames)
+		#Centroids=self.Get_Centroids(self.CenterlineFileNamesPaths,self.CenterlineFileNames)
 
-		#Read the LV mesh file
-		print ("--- Reading Left Ventricle Myocardial Blood Flow Data: %s"%self.VentricleFileName)
-		VentricleMesh=self.Read_Vtu(self.VentricleFileName)
+                #Read the vtu file
+		print ("--- Reading Left Ventricle Myocardial Blood Flow Data: %s"%self.Args.InputFileName)
+		if   self.Args.InputFileName[-4:]==".vtk":
+			VentricleMesh=ReadVTKFile(self.Args.InputFileName)   #Read a VTK volume stack
+			VentricleMesh=ThresholdByUpper(VentricleMesh,self.Args.ArrayName,1) #unstruct grid 
+		elif self.Args.InputFileName[-4:]==".vtu":
+			VentricleMesh=ReadVTUFile(self.Args.InputFileName) #Read a VTU unstruct grid
+		else:
+			print ("The extension %s is not valid for volume"%self.Args.InputFileName[-4:])
+			print ("Exiting...")
+			exit(1)
+
+
 
 		#Get the Nodes and Scalars of the LV Mesh
 		print ("--- Getting Coordinates from the Left Ventricle Mesh")
@@ -59,12 +72,14 @@ class CoronaryPerfusionTerritories():
 		territories.SetName("TerritoryMaps")
 		N=LV_mesh.GetNumberOfPoints()
 		for i in range(N):
-			index=self.filenames.index(Closest_CL[i])
+			index=self.CenterlineFileNames.index(Closest_CL[i])
 			territories.InsertNextValue(index)
                 
 		LV_mesh.GetPointData().AddArray(territories)
 		writer=vtk.vtkXMLUnstructuredGridWriter()
 		writer.SetInputData(LV_mesh)
+		if self.Args.OutputFileName is None:
+			self.Args.OutputFilename=self.InputFileName.replace(self.InputputFileName.split("/")[-1],"ImageAnalysisMyocardiumTerritories.vtu")
 		writer.SetFileName(self.Args.OutputFileName)
 		writer.Update()
 			
@@ -156,20 +171,20 @@ class CoronaryPerfusionTerritories():
 
 if __name__=="__main__":
         #Description
-	parser = argparse.ArgumentParser(description="This script will computed terriorites of the myocardium using coronary vessels.")
+	parser = argparse.ArgumentParser(description="This script will compute terriorites of the myocardium using coronary vessel centerlines.")
 
         #Input filename of the perfusion map
-	parser.add_argument('-ifile', '--InputFileName', type=str, required=True, dest="InputFileName",help="Volumetric Mesh that contains the Myocardial Blood Flow Data")
+	parser.add_argument('-InputFileName', '--InputFileName', type=str, required=True, dest="InputFileName",help="Volumetric MBF data in VTK or VTU format")
 	
 	#Input folder that contains the coronary centerlines
-	parser.add_argument('-centerlinesfolder', '--CenterlinesFolder', type=str, required=True, dest="CenterlinesFolder",help="Folder that contains the centerline files")
+	parser.add_argument('-CenterlinesFolder', '--CenterlinesFolder', type=str, required=True, dest="CenterlinesFolder",help="Folder that contains the centerline files labels into L_*.vtp and R_*.vtp tags.")
 	
         #Array Name of the Data
-	parser.add_argument('-arrayname', '--ArrayName', type=str, required=False,default="ImageScalars", dest="ArrayName",help="The name of the array containing the MBF values")
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False,default="scalars", dest="ArrayName",help="The name of the array containing the MBF values.")
 
         #Output argumenets
-	parser.add_argument('-ofile', '--OutputFileName', type=str, required=True, dest="OutputFileName",help="The output filename of the projected surface")
+	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output filename of the volumetric data with territories")
         
 	args=parser.parse_args()
-	CoronaryPerfusionTerritories(args).main()
+	ImageAnalysisMyocardiumCoronaryTerritories(args).main()
 

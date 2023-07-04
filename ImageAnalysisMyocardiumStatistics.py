@@ -13,8 +13,8 @@ class PerfusionComputeStatistics():
 	def __init__(self,Args):
 		self.Args=Args
 		if self.Args.OutputFolder is None:
-			os.system("mkdir Results")
-			self.Args.OutputFolder="./Results/"
+			os.system("mkdir %s/Results"%self.Args.InputFileName.split("/")[0])
+			self.Args.OutputFolder="%s/Results/"%self.Args.InputFileName.split("/")[0]
 
 	def Main(self):
                 #Read the vtu file
@@ -36,25 +36,27 @@ class PerfusionComputeStatistics():
 		Npts=Volume.GetNumberOfPoints()
 		DataArray=np.zeros(Npts)
 		for i in range(Npts):
-			DataArray[i]=Volume.GetPointData().GetArray(self.Args.ArrayName).GetValue(i)
 			
+			DataValue_=Volume.GetPointData().GetArray(self.Args.ArrayName).GetValue(i)
+			if DataValue_>0: DataArray[i]=DataValue_			
+
 		#Perform Statistics
 		Mean=np.average(DataArray)
-		Stdev=np.average(DataArray)
+		Stdev=np.std(DataArray)
 		Mode=float(stats.mode(DataArray)[0])	
-		Median50=np.percentile(DataArray,50)
-		Median75=np.percentile(DataArray,75)
-		Koen80=0.8*Media75	
+		Median50=float(np.percentile(DataArray,50))
+		Median75=float(np.percentile(DataArray,75))
+		Koen80=float(0.8*Median75)	
 
-		print ("Writing Statistics: %s/MBF_Statistics.dat"%self.Args.OutputFolder)
+		print ("Writing Statistics: %s/MBF_Statistics.txt"%self.Args.OutputFolder)
 		#Write the data to a file
-		outfile=open("%s/MBF_Statistics.dat"%self.Args.OutputFolder,'w')
+		outfile=open("%s/MBF_Statistics.txt"%self.Args.OutputFolder,'w')
 		outfile.write("Mean                : %.05f\n"%Mean)
 		outfile.write("Stdev               : %.05f\n"%Stdev)
 		outfile.write("Mode                : %.05f\n"%Mode)
 		outfile.write("Median              : %.05f\n"%Median50)
 		outfile.write("75th Perc           : %.05f\n"%Median75)
-		outfile.write("80% of 75th Perc    : %.05f\n"%Koen80)
+		outfile.write("80%% of 75th Perc    : %.05f\n"%Koen80)
 
 		outfile.close()
 
@@ -70,7 +72,7 @@ if __name__=="__main__":
 
 	parser.add_argument('-InputFileName', '--InputFileName', type=str, required=True, dest="InputFileName",help="The vtu file that contains the myocardial volume")
         
-	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, dest="ArrayName", default="ImageScalars", help="The array name where the data is stored")
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, dest="ArrayName", default="scalars", help="The array name where the data is stored")
 
 	#Output Filename 
 	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, dest="OutputFolder",help="The folder in which to write the results files.")

@@ -86,29 +86,50 @@ Dynamic CT Myocardial Perfusion Imaging (CT-MPI) is an advanced imaging modality
 MBF maps are volumetric and often challenging to visualize and interpret. We can project these volumetric maps on the surface of the myocardiam, which makes it easier to visualize the average MBF across each slice. The script will also fill any holes in the geometry with data interpolated from the neighbouring nodes. 
 
 ```console
-python ImageAnalysisMyocardiumProjectVolumeToSurface.py -InputVolume MBF_Volume.vtk -InputSurface Ventricle_Surface_CTA.vtp
+foo@bar:~$ python ImageAnalysisMyocardiumProjectVolumeToSurface.py -InputVolume MBF_Volume.vtk -InputSurface Ventricle_Surface_CTA.vtp
 ```
 Optional Arguments:
 - ```-OutputSurface```: The filename used to store the output projected surface. If None, the output filename will be MBF_Volume_ProjectedMBF.vtp.
 
-
-### 1.1 Computing Coronary Centerlines
-Coronary centerlines are needed to separate the myocardium into vessel-specific territories. The following spcript will take the "mesh-complete" folder from SimVascular as input and generate centerlines for each wall surface of coronary arteries. The centerlines will be stored inside "Centerlines" folder, the path to which you can assign as an argument. Please ensure to label the left and the right coronary trees as "wall_LCA\*.vtp" and "wall_RCA\*.vtp", respectively.
+### 1.2 Compute Global Myocardial Blood Flow Statistics
+You can output a text file that contains the following global statistics that can be used to normalize the MBF maps to reduce inter-patient variabilities.
+- Average MBF
+- Standard Deviation
+- Statistical Mode
+- 50th Percentile (Median)
+- 75th Percentile
+- 80% of 75th Percentile.
+The script with output two files: i) ```MBF_Statistics.txt```, containing the above statistics, and ii) ```MBF_Raw.txt```, containing the raw values of MBF in an ASCII format. 
 
 ```console
-foo@bar:~$ python ImageAnalysisCoronaryCenterlines.py -ifolder /path/to/mesh-complete/ -ofolder /path/to/outputfolder/to/store/centerlines/
+foo@bar:~$ python ImageAnalysisMyocardiumStatistics.py -InputFileName /path/to/registered/MBF.vtk -OutputFolder /path/to/outputfolder/
 ```
+Optional Arguments:
+- ```-ArrayName```: The name of the array containing the MBF values in the vtk file. by default, it is ```scalars```.
+### 1.3 Plotting Probability Density Function
 
-### 1.2 Quantifying Vessel-Specific Myocardial Territories using Dynamic CT-MPI and coronary CTA
- You may use the following pipeline to separate the myocardium into territories based on proximity to a coronary vessel. These territorty maps are useful to determine vessel-specific ischemia, assign boundary conditions or compute vessel-specific myocardial mass. You will need the following three items to perform this analysis:
-1. VTK Mesh that contains MBF data: This file should contain volumetric images of the myocardium and the scalar values of myocardial blood flow. The mesh should ideally be aligned/registered to the coronary CTA.
-2. Centerlines folder that contains centerlines of all coronary arteries (i.e. the Centerlines folder you generated in Section 1.1)
+
+### 1.4 Computing Coronary Centerlines
+You can semi-automatically compute centerlines of all the vessles produced by SimVascular. These centerlines can be used to separate the myocardium into distinct coronary-specific territories. Note that the following script uses the VMTK package. When you run the script, it will loop through all the vessel surfaces in the input folder, and for each, ask you to define the Inlet and Outlet ids. Note: vessel wall surfaces must have the following L_*.vtp and R_*.vtp tags, which represents left and right coronary arteries.
 
 ```console
-foo@bar:~$ python ImageAnalysisPerfusionCoronaryTerritories.py -ifile /path/to/MBF_Data.vtu/file -centerlinesfolder /path/to/Centerlines/folder -arrayname ImageScalars -ofile /path/to/MBF_Data_territories.vtu/file
+foo@bar:~$ python ImageAnalysisCoronaryCenterlines.py -InputFolderName /path/to/folder/with/wall/surfaces
+```
+Optional Arguments:
+-```-OutputFolderName```: The output folder to store the centerlines. If None, the centerlines will be stored in /path/to/folder/with/wall/surfaces_Centerlines/.
+
+
+### 1.5 Quantifying Vessel-Specific Myocardial Territories
+You can separate the myocardium into territories based on coronary centerlines computed in Section 1.4. These territory maps can be used to compute vessel-specific ischemia, assign coronary boundary conditions and/or compute vessel-specific myocardial mass. You will need two input files:
+- ```MBF.vtk```: Contains the MBF values in "scalar" array.
+- ```CenterlinesFolder```: centerlines generated in Section 1.4
+ 
+```console
+foo@bar:~$ python ImageAnalysisMyocardiumTerritories.py -InputFileName /path/to/input/filename.vtk -CenterlinesFolder /path/to/Centerlines/folder -OutputFileName /path/to/MBF_Data_territories.vtu
 ``` 
 
-
+Option Arguments:
+- ```-ArrayName```: Name of the array in the input file that contains MBF values. Default is "scalars".
 
  
 
