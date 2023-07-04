@@ -128,7 +128,7 @@ You can separate the myocardium into territories based on coronary centerlines c
 foo@bar:~$ python ImageAnalysisMyocardiumTerritories.py -InputFileName /path/to/input/filename.vtk -CenterlinesFolder /path/to/Centerlines/folder -OutputFileName /path/to/MBF_Data_territories.vtu
 ``` 
 
-Option Arguments:
+Optional Arguments:
 - ```-ArrayName```: Name of the array in the input file that contains MBF values. Default is "scalars".
 
  
