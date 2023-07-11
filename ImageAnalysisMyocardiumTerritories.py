@@ -13,11 +13,11 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		self.Args=Args
 
 		#Coronary Centerline Files
-		CenterlineFileNamesPaths=sorted(glob("%s/*.vtp"%self.Args.CenterlinesFolder))
-		CenterlineFileNames=[filename.split("/")[-1] for filename in CenterlineFileNamesPaths] 
+		self.CenterlineFileNamesPaths=sorted(glob("%s/*.vtp"%self.Args.CenterlinesFolder))
+		self.CenterlineFileNames=[filename.split("/")[-1] for filename in self.CenterlineFileNamesPaths] 
               
 		#Separate the Coronary Territories into Left and Right side 
-		self.CenterlineFileNamesPaths=[]
+		"""self.CenterlineFileNamesPaths=[]
 		self.CenterlineFileNames=[]
 		for i in range(len(CenterlineFileNames)):
 			if CenterlineFileNames[i].find("L_")>=0:
@@ -25,10 +25,10 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
 			if CenterlineFileNames[i].find("R_")>=0:
 				self.CenterlineFileNames.append(CenterlineFileNames[i])
-				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
+				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])"""
 
 		count=0
-		for CenterlineFileName_ in CenterlineFileNames:
+		for CenterlineFileName_ in self.CenterlineFileNames:
 			print ("Centerline %d is: %s"%(count,CenterlineFileName_))
 			count+=1
 

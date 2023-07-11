@@ -105,7 +105,7 @@ The script with output two files: i) ```MBF_Statistics.txt```, containing the ab
 foo@bar:~$ python ImageAnalysisMyocardiumStatistics.py -InputFileName /path/to/registered/MBF.vtk -OutputFolder /path/to/outputfolder/
 ```
 Optional Arguments:
-- ```-ArrayName```: The name of the array containing the MBF values in the vtk file. by default, it is ```scalars```.
+- ```-ArrayName```: The name of the array containing the MBF values in the vtk file. By default, it is ```scalars```.
 ### 1.3 Plotting Probability Density Function
 
 

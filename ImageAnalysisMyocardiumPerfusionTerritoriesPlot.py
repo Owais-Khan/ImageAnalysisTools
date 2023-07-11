@@ -28,7 +28,7 @@ class ImageAnalysisMyocardiumPerfusionTerritoriesPlot():
 		self.VentricleFileName=self.Args.InputFileName
 
                 #Coronary Centerline Files
-		CenterlineFileNamesPaths=sorted(glob("%s/wall_*cl.vtp"%self.Args.CenterlinesFolder))
+		CenterlineFileNamesPaths=sorted(glob("%s/*.vtp"%self.Args.CenterlinesFolder))
 		CenterlineFileNames=[filename.split("/")[-1] for filename in CenterlineFileNamesPaths]
 
                 #Separate the Coronary Territories into Left and Right side 
