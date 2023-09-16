@@ -30,20 +30,24 @@ class RawToVTK():
         data.SetDimensions(dimX, dimY, dimZ)
         data.SetSpacing(VoxelSizeX, VoxelSizeY, VoxelSizeZ)
         data.SetOrigin(0, 0, 0)
+        #data.AllocateScalars(vtk.VTK_FLOAT,3)
         writer = vtk.vtkXMLImageDataWriter()
-        writer.SetInputData(data)
         Xdata = np.fromfile(rawfile[0], dtype=np.float32)
         Ydata = np.fromfile(rawfile[1], dtype=np.float32)
         Zdata = np.fromfile(rawfile[2], dtype=np.float32)
-        Xdata = Xdata.reshape(dimX*dimY*dimZ,T)
-        Ydata = Ydata.reshape(dimX*dimY*dimZ,T)
-        Zdata = Zdata.reshape(dimX*dimY*dimZ,T)
-        vector = []
+        Xdata = Xdata.reshape(T,dimX*dimY*dimZ)
+        Ydata = Ydata.reshape(T,dimX*dimY*dimZ)
+        Zdata = Zdata.reshape(T,dimX*dimY*dimZ)
         for t in range(0,T):
-            for item in range(0, Xdata.shape[0]):
-                vector.append([Xdata[item,t], Ydata[item,t], Zdata[item,t]])
-                #vector = vector.reshape(dimX,dimY,dimZ,3)
-            data.GetPointData().SetVectors(numpy_to_vtk(np.array(vector)))
+            vector = []
+            for item in range(0, Xdata.shape[1]):
+                vector.append(np.array([Xdata[t,item], Ydata[t,item], Zdata[t,item]]))
+            #vector = np.array(vector).reshape(dimX,dimY,dimZ,3)
+            #print(np.array(vector).shape)
+            print(f"--- Writing Image {t+1}")
+            data.GetPointData().
+            data.GetPointData().SetVectors(numpy_to_vtk(vector))
+            writer.SetInputData(data)
             writer.SetFileName(f"{self.args.InputFolder}/Image{t}.vti")
             writer.Write()
 if __name__=="__main__":
