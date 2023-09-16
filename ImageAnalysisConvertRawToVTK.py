@@ -13,10 +13,12 @@ class RawToVTK():
     def __init__(self,args):
         self.args = args
     def main(self):
+        # Reading and Storing .raw datasets
         rawfile = glob.glob(f"{self.args.InputFolder}/*.raw")
         rawfile = sorted(rawfile)
+        # Reading and Storing Header Information
         header = dict()
-        with open(f"{self.args.InputFolder}/1.5_2.5_Descr.txt", "rt") as file:
+        with open(f"{self.args.InputFolder}/0.5_2.5_Descr.txt", "rt") as file:
             for line in file:
                 header[f"{(line.split('<'))[1].split('>')[0]}"] = (line.split(">"))[1].split("<")[0]
         T = int(header["DimensionSizes TZYX"].split(" ")[0])
@@ -26,27 +28,38 @@ class RawToVTK():
         VoxelSizeX = float(header["VoxelSizeX [mm]"])
         VoxelSizeY = float(header["VoxelSizeY [mm]"])
         VoxelSizeZ = float(header["VoxelSizeZ [mm]"])
+        # Creating a vtkImageData to create an image with specified dimensions and voxel sizes
         data = vtk.vtkImageData()
         data.SetDimensions(dimX, dimY, dimZ)
         data.SetSpacing(VoxelSizeX, VoxelSizeY, VoxelSizeZ)
         data.SetOrigin(0, 0, 0)
-        #data.AllocateScalars(vtk.VTK_FLOAT,3)
+        # Creating the vtk XML-type Image writer to save the image Information and execute the Image 
         writer = vtk.vtkXMLImageDataWriter()
+        # Reading Velocity Data from raw files. The file has been written as float32 
         Xdata = np.fromfile(rawfile[0], dtype=np.float32)
         Ydata = np.fromfile(rawfile[1], dtype=np.float32)
         Zdata = np.fromfile(rawfile[2], dtype=np.float32)
-        Xdata = Xdata.reshape(T,dimX*dimY*dimZ)
-        Ydata = Ydata.reshape(T,dimX*dimY*dimZ)
-        Zdata = Zdata.reshape(T,dimX*dimY*dimZ)
+        # Reshaping Velocity Data to its original shape
+        Xdata = Xdata.reshape(T,dimZ,dimY,dimX)
+        Ydata = Ydata.reshape(T,dimZ,dimY,dimX)
+        Zdata = Zdata.reshape(T,dimZ,dimY,dimX)
+        # Defining a vtk float array to store the velocity values
+        vector = vtk.vtkFloatArray()
+        vector.SetName('Velocity')
+        vector.SetNumberOfComponents(3)
+        vector.SetNumberOfTuples(data.GetNumberOfPoints())
         for t in range(0,T):
-            vector = []
-            for item in range(0, Xdata.shape[1]):
-                vector.append(np.array([Xdata[t,item], Ydata[t,item], Zdata[t,item]]))
+            #velocity_vector = np.empty((dimX,dimY,dimZ,3), dtype=np.float32)
+            for x in range(dimX):
+                for y in range(dimY):
+                    for z in range(dimZ):
+                        point_id = data.ComputePointId([x,y,z])
+                        vector.SetTuple3(point_id, Xdata[t,z,y,x], Ydata[t,z,y,x], Zdata[t,z,y,x])
+                #vector.append(np.array([Xdata[t,item], Ydata[t,item], Zdata[t,item]]))
             #vector = np.array(vector).reshape(dimX,dimY,dimZ,3)
             #print(np.array(vector).shape)
             print(f"--- Writing Image {t+1}")
-            data.GetPointData().
-            data.GetPointData().SetVectors(numpy_to_vtk(vector))
+            data.GetPointData().SetVectors(vector)
             writer.SetInputData(data)
             writer.SetFileName(f"{self.args.InputFolder}/Image{t}.vti")
             writer.Write()
