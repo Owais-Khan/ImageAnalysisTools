@@ -8,7 +8,7 @@ import numpy as np
 import vtk
 import glob
 import argparse
-from utilities import numpy_to_vtk
+#from utilities import numpy_to_vtk
 class RawToVTK():
     def __init__(self,args):
         self.args = args
@@ -55,9 +55,17 @@ class RawToVTK():
                     for z in range(dimZ):
                         point_id = data.ComputePointId([x,y,z])
                         vector.SetTuple3(point_id, Xdata[t,z,y,x], Ydata[t,z,y,x], Zdata[t,z,y,x])
-                #vector.append(np.array([Xdata[t,item], Ydata[t,item], Zdata[t,item]]))
-            #vector = np.array(vector).reshape(dimX,dimY,dimZ,3)
-            #print(np.array(vector).shape)
+            '''
+            Another method to create the xyz velocity array is to reshape the data into (T,dimZ*dimY*dimX) 
+            and for items in each timesteps append a np.array with XYZ point data and at last convert the 
+            data into vtk format:
+            Xdata = Xdata.reshape(T,dimZ*dimY*dimX)
+            ...
+            vector = []
+            for item in range(dimZ*dimY*dimX):
+                vector.append([Xdata(t,item),Ydata(t,item),Zdata(t,item)])
+            vector = numpy_to_vtk(np.array(vector))
+            '''
             print(f"--- Writing Image {t+1}")
             data.GetPointData().SetVectors(vector)
             writer.SetInputData(data)
