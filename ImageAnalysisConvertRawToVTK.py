@@ -17,10 +17,10 @@ class RawToVTK():
         rawfile = glob.glob(f"{self.args.InputFolder}/*.raw")
         rawfile = sorted(rawfile)
         # Reading and Storing Header Information
+        headerfile = glob.glob(f"{self.args.InputFolder}/*.txt")
         header = dict()
-        with open(f"{self.args.InputFolder}/0.5_2.5_Descr.txt", "rt") as file:
-            for line in file:
-                header[f"{(line.split('<'))[1].split('>')[0]}"] = (line.split(">"))[1].split("<")[0]
+        with open(f"{headerfile[0]}", "rt") as file:
+            header = {f"{(line.split('<'))[1].split('>')[0]}": (line.split(">"))[1].split("<")[0] for line in file}
         T = int(header["DimensionSizes TZYX"].split(" ")[0])
         dimZ = int(header["DimensionSizes TZYX"].split(" ")[1])
         dimY = int(header["DimensionSizes TZYX"].split(" ")[2])
@@ -64,7 +64,7 @@ class RawToVTK():
             writer.SetFileName(f"{self.args.InputFolder}/Image{t}.vti")
             writer.Write()
 if __name__=="__main__":
-    parser = argparse.ArgumentParser(description="The script takes a folder containing raw data and image header")
+    parser = argparse.ArgumentParser(description="The script takes a folder containing raw velocity data in XYZ and image header")
     parser.add_argument("-InputFolder", "--InputFolder", dest="InputFolder", type=str, required=True, help="Input the folder containing X,Y,Z raw dataset and header")
     args = parser.parse_args()
     RawToVTK(args).main()
