@@ -71,6 +71,16 @@ This script can be used to take the centerlines files of the lumen containing th
 foo@bar:~$ python ImageAnalysisContrastDispersion.py -InputFolder /path/to/folder/containing/clfiles 
 ```
 
+## ImageAnalysisCreateStenosis.py
+This scrip will create a stenosis in a given surface. You can pre-specify the location (e.g., 50% along the length of the centerline) and the diameter reduction (e.g., 0.5). The script takes a surface file and a centerlines file.
+```console
+foo@bar:~$ python ImageAnalysisCreateStenosis.py -InputFileName /path/to/input/surface -InputCenterlinesFileName -StenosisLocation 75
+```
+Optional Arguments:
+- ```-StenosisDiameter```: Stenosis throat diameter as a fraction of the normal diameter (default=0.5).
+- ```-StenosisLength```: Length of the stenosis as a function of the normal diameter (default=2).
+- ```-OutputFileName```: Name of the output file (default is same as input file with stenosis tag).
+
 ---
 
 
@@ -131,5 +141,13 @@ foo@bar:~$ python ImageAnalysisMyocardiumTerritories.py -InputFileName /path/to/
 Optional Arguments:
 - ```-ArrayName```: Name of the array in the input file that contains MBF values. Default is "scalars".
 
- 
+### 1.6 Plotting Histogram of MBF Values
+You can plot the histogram of the raw MBF values and compare it to normal distribution. This is one way to assess how skewed the probability distrubution funcition is compared to a gaussian normal distribution, and thus, assess the severity of ischemia. The script will also output the results of Shapri-Wilk normality test (with p<0.05 meaning it's not normally distributed).
 
+```console
+foo@bar:~$ python ImageAnalysisMyocardiumHistogramTecplot.py -InputFileName /path/to/input/filename.vtk -OutputFolder /path/to/output/folder/to/store/tecplotfile.dat
+``` 
+
+Optional Arguments:
+- ```-ArrayName```: Name of the array in the input file that contains MBF values. Default is "scalars".
+- ```-Bins```: Number of Bins for the histogram. Default is 300.
