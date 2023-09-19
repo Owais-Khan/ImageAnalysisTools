@@ -100,7 +100,7 @@ if __name__=="__main__":
 	
 	parser.add_argument('-StenosisLength', '--StenosisLength', type=float, required=False, default=2, dest="StenosisLength",help="The length of the stenosis in terms of maximum inscripted sphere radius (MISR). For example, StenosisLength of 1 would mean that stenosis is 0.5*MISR proximal and 0.5*MISR distal to the stenosis throat. Default is 2.0")
 	
-	parser.add_argument('-StenosisDiameter', '--StenosisDiameter', type=float, required=False, default=0.5, dest="StenosisDiameter", choices=np.linspace(0,1.0,101),help="The minimum diameter of the stenosis as a fraction of the global diameter. Default is 0.5")
+	parser.add_argument('-StenosisDiameter', '--StenosisDiameter', type=float, required=False, default=0.5, dest="StenosisDiameter", choices=np.round(np.linspace(0,1.,101),decimals=2), help="The minimum diameter of the stenosis as a fraction of the global diameter. Default is 0.5")
 
         #Resolution of the Averaging Procedure
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The filename of the output surface file with the stenosis included.")
