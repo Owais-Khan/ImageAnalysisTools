@@ -65,8 +65,8 @@ class ImageAnalysisProjectImageWallToSurface():
 			Normals_=np.array(TargetData.GetPointData().GetArray("Normals").GetTuple(i))
                         
 			#Get Source and Target Points in Normal Directions
-			pSource=TargetData.GetPoint(i)+Normals_*self.Args.Thickness #Pointing outwards
-			pTarget=TargetData.GetPoint(i)-Normals_*self.Args.Thickness #Pointing inwards
+			pSource=TargetData.GetPoint(i)+Normals_*self.Args.Thickness/2. #Pointing outwards
+			pTarget=TargetData.GetPoint(i)-Normals_*self.Args.Thickness/2. #Pointing inwards
 
 			#Create a line
 			Line=ConvertPointsToLine(np.array([pSource,pTarget]))
