@@ -72,7 +72,7 @@ foo@bar:~$ python ImageAnalysisContrastDispersion.py -InputFolder /path/to/folde
 ```
 
 ## ImageAnalysisCreateStenosis.py
-This scrip will create a stenosis in a given surface. You can pre-specify the location (e.g., 50% along the length of the centerline) and the diameter reduction (e.g., 0.5). The script takes a surface file and a centerlines file.
+This script will create a stenosis in a given surface. You can pre-specify the location (e.g., 50% along the length of the centerline) and the diameter reduction (e.g., 0.5). The script takes a surface file and a centerlines file.
 ```console
 foo@bar:~$ python ImageAnalysisCreateStenosis.py -InputFileName /path/to/input/surface -InputCenterlinesFileName -StenosisLocation 75
 ```
@@ -80,6 +80,20 @@ Optional Arguments:
 - ```-StenosisDiameter```: Stenosis throat diameter as a fraction of the normal diameter (default=0.5).
 - ```-StenosisLength```: Length of the stenosis as a function of the normal diameter (default=2).
 - ```-OutputFileName```: Name of the output file (default is same as input file with stenosis tag).
+
+## ImageAnalysisProjectImageWallToSurface.py
+This script will project image intensities close to the surface wall onto the surface. Inward/Outward pointing spokes from each surface node are computed and image intensities are projected on each of the spokes. Heatmaps of averaged and max intensities along these spokes are created to the surface.
+
+```console 
+foo@bar:~$ python ImageAnalysisProjectImageWallToSurface.py -InputImage /path/to/input/image -InputSurface /path/to/input/surface 
+```
+Optional Arguments:
+- ```-OutputFileName```: OutputFileName will have the surface tag _Surface.vtp using the InputImage name.
+- ```-Thickness```: Length of the spokes. Default is 1 (e.g., 0.5mm in and 0.5mm out of the surface).
+
+
+
+
 
 ---
 
