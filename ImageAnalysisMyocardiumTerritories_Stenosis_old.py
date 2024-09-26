@@ -17,20 +17,21 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		self.CenterlineFileNames=[filename.split("/")[-1] for filename in self.CenterlineFileNamesPaths] 
               
 		#Separate the Coronary Territories into Left and Right side 
-		"""self.CenterlineFileNamesPaths=[]
-		self.CenterlineFileNames=[]
-		for i in range(len(CenterlineFileNames)):
-			if CenterlineFileNames[i].find("L_")>=0:
-				self.CenterlineFileNames.append(CenterlineFileNames[i])
-				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
-			if CenterlineFileNames[i].find("R_")>=0:
-				self.CenterlineFileNames.append(CenterlineFileNames[i])
-				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])"""
+		LAD_Labels=[]
+		LCx_Labels=[]
+		Diag1_Labels=[]
+		PDA_Labels=[]
+		Intermedius_Labels=[]
+		No_Labels=[]
 
-		count=0
-		for CenterlineFileName_ in self.CenterlineFileNames:
-			print ("Centerline %d is: %s"%(count,CenterlineFileName_))
-			count+=1
+		for value in self.CenterlineFileNamesPaths:
+			if    value.split("/")[-1].find("LAD_Stenosis"):   LAD_Labels.append(value)
+			elif: value.split("/")[-1].find("LCx_Stenosis"):   LCx_Labels.append(value)
+			elif: value.split("/")[-1].find("Diag1_Stenosis"): Diag1_Labels.append(value)
+			elif: value.split("/")[-1].find("PDA_Stenosis"):   PDA_Labels.append(value)
+			elif: value.split("/")[-1].find("Intermedius_Stenosis"): Intermedius_Labels.append(value)
+			else: No_Labels.append(value)
+
 
 	def main(self):
 		#Get the areas for all of the surface caps
@@ -61,6 +62,7 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		#For each LV node, find the shortest distance to the CL
 		print ("--- Getting the shortest distance for each Ventricle Node to closest centerline")
 		ClosestCenterLines=self.Get_Shortest_Distance(CenterlineCoordinates,VentricleCoordinates)	
+		
 		#Now write the data with a new territory division
 		print ("--- Writing the territory maps")
 		self.Write_Territories(VentricleMesh,ClosestCenterLines)
@@ -79,7 +81,7 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		writer=vtk.vtkXMLUnstructuredGridWriter()
 		writer.SetInputData(LV_mesh)
 		if self.Args.OutputFileName is None:
-			self.Args.OutputFilename=self.Args.InputFileName.replace(self.Args.InputputFileName.split("/")[-1],"ImageAnalysisMyocardiumTerritories.vtu")
+			self.Args.OutputFilename=self.InputFileName.replace(self.InputputFileName.split("/")[-1],"ImageAnalysisMyocardiumTerritories.vtu")
 		writer.SetFileName(self.Args.OutputFileName)
 		writer.Update()
 			
@@ -180,7 +182,7 @@ if __name__=="__main__":
 	parser.add_argument('-CenterlinesFolder', '--CenterlinesFolder', type=str, required=True, dest="CenterlinesFolder",help="Folder that contains the centerline files labels into L_*.vtp and R_*.vtp tags.")
 	
         #Array Name of the Data
-	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False,default="ImageScalars", dest="ArrayName",help="The name of the array containing the MBF values.")
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False,default="scalars", dest="ArrayName",help="The name of the array containing the MBF values.")
 
         #Output argumenets
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output filename of the volumetric data with territories")

@@ -73,13 +73,19 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		N=LV_mesh.GetNumberOfPoints()
 		for i in range(N):
 			index=self.CenterlineFileNames.index(Closest_CL[i])
-			territories.InsertNextValue(index)
+			if self.CenterlineFileNames[index].find("LAD_Stenosis")>=0:Label_=1
+			elif self.CenterlineFileNames[index].find("Diag1_Stenosis")>=0:Label_=2
+			elif self.CenterlineFileNames[index].find("LCx_Stenosis")>=0:Label_=3
+			elif self.CenterlineFileNames[index].find("Intermedius_Stenosis")>=0:Label_=4
+			elif self.CenterlineFileNames[index].find("PDA_Stenosis")>=0:Label_=5
+			else: Label_=0
+			territories.InsertNextValue(Label_)
                 
 		LV_mesh.GetPointData().AddArray(territories)
 		writer=vtk.vtkXMLUnstructuredGridWriter()
 		writer.SetInputData(LV_mesh)
 		if self.Args.OutputFileName is None:
-			self.Args.OutputFilename=self.Args.InputFileName.replace(self.Args.InputputFileName.split("/")[-1],"ImageAnalysisMyocardiumTerritories.vtu")
+			self.Args.OutputFilename=self.Args.InputFileName.replace(self.Args.InputputFileName.split("/")[-1],"ImageAnalysisMyocardiumTerritories_StenosisLabels.vtu")
 		writer.SetFileName(self.Args.OutputFileName)
 		writer.Update()
 			
@@ -180,7 +186,7 @@ if __name__=="__main__":
 	parser.add_argument('-CenterlinesFolder', '--CenterlinesFolder', type=str, required=True, dest="CenterlinesFolder",help="Folder that contains the centerline files labels into L_*.vtp and R_*.vtp tags.")
 	
         #Array Name of the Data
-	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False,default="ImageScalars", dest="ArrayName",help="The name of the array containing the MBF values.")
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False,default="scalars", dest="ArrayName",help="The name of the array containing the MBF values.")
 
         #Output argumenets
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output filename of the volumetric data with territories")

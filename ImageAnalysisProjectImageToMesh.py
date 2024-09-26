@@ -43,7 +43,27 @@ class ImageAnalysisProjectImageToMesh():
 		ProbeFilter.SetSourceData(SourceData)
 		ProbeFilter.Update()
 		ProbeOutput=ProbeFilter.GetOutput()
+	
+		#Loop over the surface nodes and write a velocity of zero
+		print ("--- Setting Velocity on the Surface to Zero")
+		if self.Args.InputFileName3 is not None:
+			print ("--- Reading Wall Surface Mesh where Zero Velocity is Assigned")
+			Surface=ReadVTPFile(self.Args.InputFileName3)
+		else:
+			print ("--- No Wall Mesh Found. Assign zero velocity on walls and caps")
+			Surface=ExtractSurface(TargetData)
+
+
+		SurfaceCoords=vtk_to_numpy(Surface.GetPoints().GetData())
+		counter=0
+		for i in range(ProbeOutput.GetNumberOfPoints()):
+			if TargetData.GetPoint(i) in SurfaceCoords:
+				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3,0)
+				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3+1,0)
+				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3+2,0)
 		
+	
+	
 		print ("--- Write the output file in the same format as target data")
 		WriteVTUFile(self.Args.OutputFileName,ProbeOutput)		
 		
@@ -54,10 +74,12 @@ if __name__=="__main__":
 
 	parser.add_argument('-InputFileName1', '--InputFileName1', type=str, required=True, dest="InputFileName1",help="File name of the source data")
         
-	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, dest="scalars",help="The array name that contains the image intensitites.")
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, default="Velocity",dest="ArrayName",help="The array name that contains the image intensitites.")
         
 	#Input filename of the coronary segmented surface.
-	parser.add_argument('-InputFileName2', '--InputMesh', type=str, required=True, dest="InputFileName2",help="File name of the input mesh/surface on which to project from the source data")
+	parser.add_argument('-InputFileName2', '--InputFileName2', type=str, required=True, dest="InputFileName2",help="File name of the input mesh/surface on which to project from the source data")
+	
+	parser.add_argument('-InputFileName3', '--InputFileName3', type=str, required=False, dest="InputFileName3",help="File name of the input wall mesh where velocity of zero should be assigned")
         
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="File name in which to store the image intensitites.")
         

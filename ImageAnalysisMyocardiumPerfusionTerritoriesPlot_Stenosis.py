@@ -18,30 +18,16 @@ class ImageAnalysisMyocardiumPerfusionTerritoriesPlot():
 		if self.Args.OutputFileName is None:
 			InputFileNameStripped=self.Args.InputFileName.split("/")[-1]
 			OutputFolder =self.Args.InputFileName.replace(InputFileNameStripped,"")
-			OutputFileName=OutputFolder+"MyocardiumPerfusionTerritoriesPlot.dat"
+			OutputFileName=OutputFolder+"MyocardiumPerfusionTerritoriesPlot_Stenosis.dat"
 			self.Args.OutputFileName=OutputFileName
 
-		#Name of the Coronary Artery Tags
-		#self.MBF_data={"RCA":[], "LAD":[], "Diag":[], "Septal":[], "LCx":[], "LAD_Diag_Sep":[]}
-		self.MBF_data={"RCA":[], "LAD":[], "Diag":[], "Septal":[], "LCx":[], "":[]}
-	
 		#The LV filename that contains MBF
 		self.VentricleFileName=self.Args.InputFileName
 
                 #Coronary Centerline Files
-		CenterlineFileNamesPaths=sorted(glob("%s/*.vtp"%self.Args.CenterlinesFolder))
-		CenterlineFileNames=[filename.split("/")[-1] for filename in CenterlineFileNamesPaths]
-
-                #Separate the Coronary Territories into Left and Right side 
-		self.CenterlineFileNamesPaths=[]
-		self.CenterlineFileNames=[]
-		for i in range(len(CenterlineFileNames)):
-			if CenterlineFileNames[i].find("RCA")>=0 or CenterlineFileNames[i].find("wall_R_")>=0:
-				self.CenterlineFileNames.append(CenterlineFileNames[i])
-				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
-			if CenterlineFileNames[i].find("LCA")>=0 or CenterlineFileNames[i].find("wall_L_")>=0:
-				self.CenterlineFileNames.append(CenterlineFileNames[i])
-				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
+		self.CenterlineFileNamesPaths=sorted(glob("%s/*_Stenosis_*.vtp"%self.Args.CenterlinesFolder))
+		self.CenterlineFileNames=[filename.split("/")[-1] for filename in self.CenterlineFileNamesPaths]
+			
 
 	def main(self):
 		#Read the LV mesh file that contains the territory mappings and MBF
@@ -56,7 +42,7 @@ class ImageAnalysisMyocardiumPerfusionTerritoriesPlot():
 	
 	def compute_mbf(self,VentricleMesh):
                 #Separate the vessels into various territories
-		MBF_data=self.MBF_data
+		MBF_data={}
 		
 		#Get the number of points in the array
 		N=VentricleMesh.GetNumberOfPoints()
@@ -64,26 +50,15 @@ class ImageAnalysisMyocardiumPerfusionTerritoriesPlot():
                 #Loop over all points and append to the correct array
 		for i in range(N):
 			value_=VentricleMesh.GetPointData().GetArray(self.Args.ArrayName).GetValue(i)
-			if value_==0: continue
 			territory_idx_=VentricleMesh.GetPointData().GetArray("TerritoryMaps").GetValue(i)
 			filename_=self.CenterlineFileNames[territory_idx_]
-			if filename_.find("RCA")>=0: 
-				MBF_data["RCA"].append(value_)
-			elif filename_.find("lad")>=0 or filename_.find("LAD")>=0 : 
-				MBF_data["LAD"].append(value_)
-			elif filename_.find("diag")>=0 or filename_.find("Diag")>=0 :
-				MBF_data["Diag"].append(value_)
-			#elif filename_.find("septal")>=0 or filename_.find("lad")>=0 : 
-			#	MBF_data["Septal"].append(value_)
-			elif filename_.find("lcx")>=0 or filename_.find("LCx")>=0 : 
-				MBF_data["LCx"].append(value_)
-			elif filename_.find("LCA")>=0 or filename_.find("LCA")>=0 : 
-				MBF_data["LAD"].append(value_)
-			else:
-				print ("A value was not found for any territory")
-				exit(1)
-			if filename_.find("LCA")>=0 and filename_.find("lcx")<0:
-				MBF_data["LAD_Diag_Sep"].append(value_)
+			CoronaryName_=filename_.split("_")[0]
+			if CoronaryName_ in MBF_data:
+				MBF_data[CoronaryName_].append(value_)
+			else: 
+				MBF_data[CoronaryName_]=[]
+				MBF_data[CoronaryName_].append(value_)
+
 		return MBF_data
 
         
@@ -127,10 +102,10 @@ if __name__=="__main__":
 	parser.add_argument('-CenterlinesFolder', '--CenterlinesFolder', type=str, required=True, dest="CenterlinesFolder",help="Folder that contains the centerline files")
 
         #Array Name of the Data
-	parser.add_argument('-Arrayname', '--ArrayName', type=str, required=False,default="ImageScalars", dest="ArrayName",help="The name of the array containing the MBF values")
+	parser.add_argument('-arrayname', '--ArrayName', type=str, required=False,default="scalars", dest="ArrayName",help="The name of the array containing the MBF values")
 
 	#Pre- or Post-CABG
-	parser.add_argument('-PostCABG', '-PostCABG', type=int, required=False, default=0, dest="PostCABG", help="0 for pre-cabg (default) and 1 for post-cabg")
+	parser.add_argument('-postCABG', '-PostCABG', type=int, required=False, default=0, dest="PostCABG", help="0 for pre-cabg (default) and 1 for post-cabg")
 
         #Output argumenets
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output filename to store the perfusion plots and histograms")
