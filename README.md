@@ -91,9 +91,18 @@ Optional Arguments:
 - ```-OutputFileName```: OutputFileName will have the surface tag _Surface.vtp using the InputImage name.
 - ```-Thickness```: Length of the spokes. Default is 1 (e.g., 0.5mm in and 0.5mm out of the surface).
 
+---
+## 4D Flow MRI Tools
 
+## ImageAnalysis4DFlowMRI_MatLabToVTK.py
+This script will convert a MatLab output file into VTK files that can be loaded into Paraview or Slicer. The Matlab files contains a dictionary with the following two keys entries:
+PCMR: X Y Z T Mag U V W
+spatialres:
+The output file will consist of N volumetric VTK files where N represents the number of temporal frames saved.
 
-
+```console
+foo@bar:~$ python ImageAnalysis4DFlowMRI_MatLabToVTK.py -InputFileName /path/to/MatLab/file -OutputFolder /path/where/VTK/files/will/be/stored. 
+``` 
 
 ---
 
