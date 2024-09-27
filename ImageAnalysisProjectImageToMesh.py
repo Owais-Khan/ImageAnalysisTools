@@ -61,6 +61,14 @@ class ImageAnalysisProjectImageToMesh():
 				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3,0)
 				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3+1,0)
 				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3+2,0)
+			else:
+				U=ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).GetValue(i*3)
+				V=ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).GetValue(i*3+1)
+				W=ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).GetValue(i*3+2)
+				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3,-W)
+				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3+1,V)
+				ProbeOutput.GetPointData().GetArray(self.Args.ArrayName).SetValue(i*3+2,U)
+				
 		
 	
 	
