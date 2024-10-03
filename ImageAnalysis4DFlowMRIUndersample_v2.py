@@ -18,10 +18,10 @@ class ImageAnalysis4DFlowMRIUndersample():
 
 	def Main(self):
 		#Get the number of time steps
-		InputFiles=sorted(glob((self.Args.InputFolder+"/*.vti")))
+		InputFiles=sorted(glob((self.Args.InputFolder+"/*.vtu")))
 		N_ts=len(InputFiles)
 		if N_ts is None: 
-			print ("No .vti files found in the input folder. Exiting...")
+			print ("No .vtu files found in the input folder. Exiting...")
 			exit(1)
 
 		#Load the first file in the folder and get image parameters

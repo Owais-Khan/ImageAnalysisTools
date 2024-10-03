@@ -147,6 +147,12 @@ def CutLine(Slice,Point,Centroid,Norm1):
 	Line1.Update()
 	return Line1.GetOutput()
 
+def CreateSphere(Coord,Radius):
+	Sphere=vtk.vtkSphere()
+	Sphere.SetCenter(Coord)
+	Sphere.SetRadius(Radius)
+	return Sphere
+
 def GetCentroid(Surface):
 	Centroid=vtk.vtkCenterOfMass()
 	Centroid.SetInputData(Surface)
