@@ -12,24 +12,28 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		#Input argumenets
 		self.Args=Args
 
+		if self.Args.OutputFileName is None:
+			if self.Args.InputFileName.find("/")>=0: self.Args.OutputFilename=self.Args.InputFileName.replace(self.Args.InputFileName.split("/")[-1],"MBF_Territories.vtu")
+			else: self.Args.OutputFileName="MBF_Territories.vtu"
+			self.Args.OutputFilename2=self.Args.OutputFileName.replace(".vtu","_Labels.dat")
+
 		#Coronary Centerline Files
-		self.CenterlineFileNamesPaths=sorted(glob("%s/*.vtp"%self.Args.CenterlinesFolder))
+		LADFiles        =sorted(glob("%s/mesh-surfaces/wall_L_LAD_*.vtp"%self.Args.VesselSurfaces))
+		IntermediusFiles=sorted(glob("%s/mesh-surfaces/wall_L_Intermedius_*.vtp"%self.Args.VesselSurfaces))
+		LCxFiles        =sorted(glob("%s/mesh-surfaces/wall_L_LCx_*.vtp"%self.Args.VesselSurfaces))
+		Diag1Files      =sorted(glob("%s/mesh-surfaces/wall_L_Diag1_*.vtp"%self.Args.VesselSurfaces))
+		Diag2Files      =sorted(glob("%s/mesh-surfaces/wall_L_Diag2_*.vtp"%self.Args.VesselSurfaces))
+		PDAFiles        =sorted(glob("%s/mesh-surfaces/wall_R_PDA_*.vtp"%self.Args.VesselSurfaces))
+		PLAFiles        =sorted(glob("%s/mesh-surfaces/wall_R_PLA_*.vtp"%self.Args.VesselSurfaces))
+		
+		#Merge all of the files
+		self.CenterlineFileNamesPaths=LADFiles+IntermediusFiles+LCxFiles+Diag1Files+Diag2Files+PDAFiles+PLAFiles
+	
 		self.CenterlineFileNames=[filename.split("/")[-1] for filename in self.CenterlineFileNamesPaths] 
-              
-		#Separate the Coronary Territories into Left and Right side 
-		"""self.CenterlineFileNamesPaths=[]
-		self.CenterlineFileNames=[]
-		for i in range(len(CenterlineFileNames)):
-			if CenterlineFileNames[i].find("L_")>=0:
-				self.CenterlineFileNames.append(CenterlineFileNames[i])
-				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])
-			if CenterlineFileNames[i].find("R_")>=0:
-				self.CenterlineFileNames.append(CenterlineFileNames[i])
-				self.CenterlineFileNamesPaths.append(CenterlineFileNamesPaths[i])"""
 
 		count=0
 		for CenterlineFileName_ in self.CenterlineFileNames:
-			print ("Centerline %d is: %s"%(count,CenterlineFileName_))
+			print ("Surface %d is: %s"%(count,CenterlineFileName_))
 			count+=1
 
 	def main(self):
@@ -49,6 +53,12 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 			exit(1)
 
 
+		#Find the array name with work "scalars"
+		if self.Args.ArrayName is None:
+			for i in range(VentricleMesh.GetPointData().GetNumberOfArrays()):
+				ArrayName_=str(VentricleMesh.GetPointData().GetArrayName(i))
+				if ArrayName_.find("calars")>0: self.Args.ArrayName=ArrayName_
+		print ("--- The array that contains MBF values is: %s"%self.Args.ArrayName)
 
 		#Get the Nodes and Scalars of the LV Mesh
 		print ("--- Getting Coordinates from the Left Ventricle Mesh")
@@ -61,10 +71,11 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		#For each LV node, find the shortest distance to the CL
 		print ("--- Getting the shortest distance for each Ventricle Node to closest centerline")
 		ClosestCenterLines=self.Get_Shortest_Distance(CenterlineCoordinates,VentricleCoordinates)	
+		
 		#Now write the data with a new territory division
 		print ("--- Writing the territory maps")
 		self.Write_Territories(VentricleMesh,ClosestCenterLines)
-	
+
 	def Write_Territories(self,LV_mesh,Closest_CL):
 		#Create New Array in LV mesh with CL names
 		territories=vtk.vtkIntArray()
@@ -78,8 +89,6 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		LV_mesh.GetPointData().AddArray(territories)
 		writer=vtk.vtkXMLUnstructuredGridWriter()
 		writer.SetInputData(LV_mesh)
-		if self.Args.OutputFileName is None:
-			self.Args.OutputFilename=self.Args.InputFileName.replace(self.Args.InputputFileName.split("/")[-1],"ImageAnalysisMyocardiumTerritories.vtu")
 		writer.SetFileName(self.Args.OutputFileName)
 		writer.Update()
 			
@@ -103,8 +112,11 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 
 	def Read_CL_Coords(self,filenames):
 		CL_coords={}
+		print ("--- Writing Territory Labels to %s"%self.Args.OutputFilename2)
+		outfile=open(self.Args.OutputFilename2,'w')
+		outfile.write("TerritoryLabel CenterlineName\n")
+		counter=0
 		for filename in filenames:
-			print ("-----%s"%filename)
 			filename_short=filename.split("/")[-1]
 			reader=vtk.vtkXMLPolyDataReader()
 			reader.SetFileName(filename)
@@ -115,10 +127,13 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 			for i in range(N):
 				points_[i]=CL_data.GetPoint(i)	
 			CL_coords[filename_short]=points_
+			outfile.write("%d %s\n"%(counter,filename.split("/")[-1]))
+			counter+=1 
+		outfile.close()
 		return CL_coords	
 
 	def Get_Point_Data(self,LV_mesh):
-		print ("------ Getting LV Coordinates and MBF")
+		print ("--- Getting LV Coordinates and MBF")
 		N=LV_mesh.GetNumberOfPoints()	
 		Coords=np.zeros(shape=(N,3))
 		imageScalars=np.zeros(N)
@@ -171,16 +186,16 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 
 if __name__=="__main__":
         #Description
-	parser = argparse.ArgumentParser(description="This script will compute terriorites of the myocardium using coronary vessel centerlines.")
+	parser = argparse.ArgumentParser(description="This script will compute terriorites of the myocardium using coronary vessel centerlines/surfaces.")
 
         #Input filename of the perfusion map
 	parser.add_argument('-InputFileName', '--InputFileName', type=str, required=True, dest="InputFileName",help="Volumetric MBF data in VTK or VTU format")
 	
 	#Input folder that contains the coronary centerlines
-	parser.add_argument('-CenterlinesFolder', '--CenterlinesFolder', type=str, required=True, dest="CenterlinesFolder",help="Folder that contains the centerline files labels into L_*.vtp and R_*.vtp tags.")
+	parser.add_argument('-VesselSurfaces', '--VesselSurfaces', type=str, required=True, dest="VesselSurfaces",help="Folder that contains the centerline files labels into L_*.vtp and R_*.vtp tags.")
 	
         #Array Name of the Data
-	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False,default="ImageScalars", dest="ArrayName",help="The name of the array containing the MBF values.")
+	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, dest="ArrayName",help="The name of the array containing the MBF values.")
 
         #Output argumenets
 	parser.add_argument('-OutputFileName', '--OutputFileName', type=str, required=False, dest="OutputFileName",help="The output filename of the volumetric data with territories")

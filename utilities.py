@@ -102,7 +102,7 @@ def CreatePolyLine(Coords):
 
 def ClosestPoint(Point, Array):
 	dist_2 = np.sum((Array - Point)**2, axis=1)
-	return Array[np.argmin(dist_2)],np.argmin(dist_2)
+	return Array[np.argmin(dist_2)],np.argmin(dist_2),min(dist_2)
 
 def FurthestPoint(Point, Array):
         dist_2 = np.sum((Array - Point)**2, axis=1)
