@@ -20,11 +20,11 @@ class ImageAnalysisMyocardiumCoronaryTerritories():
 		#Coronary Centerline Files
 		LADFiles        =sorted(glob("%s/mesh-surfaces/wall_L_LAD_*.vtp"%self.Args.VesselSurfaces))
 		IntermediusFiles=sorted(glob("%s/mesh-surfaces/wall_L_Intermedius_*.vtp"%self.Args.VesselSurfaces))
-		LCxFiles        =sorted(glob("%s/mesh-surfaces/wall_L_LCx_*.vtp"%self.Args.VesselSurfaces))
-		Diag1Files      =sorted(glob("%s/mesh-surfaces/wall_L_Diag1_*.vtp"%self.Args.VesselSurfaces))
-		Diag2Files      =sorted(glob("%s/mesh-surfaces/wall_L_Diag2_*.vtp"%self.Args.VesselSurfaces))
-		PDAFiles        =sorted(glob("%s/mesh-surfaces/wall_R_PDA_*.vtp"%self.Args.VesselSurfaces))
-		PLAFiles        =sorted(glob("%s/mesh-surfaces/wall_R_PLA_*.vtp"%self.Args.VesselSurfaces))
+		LCxFiles        =sorted(glob("%s/mesh-surfaces/wall_L_LCx*.vtp"%self.Args.VesselSurfaces))
+		Diag1Files      =sorted(glob("%s/mesh-surfaces/wall_L_Diag1*.vtp"%self.Args.VesselSurfaces))
+		Diag2Files      =sorted(glob("%s/mesh-surfaces/wall_L_Diag2*.vtp"%self.Args.VesselSurfaces))
+		PDAFiles        =sorted(glob("%s/mesh-surfaces/wall_R_PDA*.vtp"%self.Args.VesselSurfaces))
+		PLAFiles        =sorted(glob("%s/mesh-surfaces/wall_R_PLA*.vtp"%self.Args.VesselSurfaces))
 		
 		#Merge all of the files
 		self.CenterlineFileNamesPaths=LADFiles+IntermediusFiles+LCxFiles+Diag1Files+Diag2Files+PDAFiles+PLAFiles
