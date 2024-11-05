@@ -21,67 +21,81 @@ class ImageAnalysisMyocardiumOverlapWithTerritories():
 	def Main(self):
                 #Read the vtu file
 		print ("--- Reading %s"%self.Args.InputFileName)
-		if   self.Args.InputFileName[-4:]==".vtk":
-			Volume=ReadVTKFile(self.Args.InputFileName)   #Read a VTK volume stack
-			Volume=ThresholdByUpper(Volume,self.Args.ArrayName,1) #Convert to an unstructured grid 
-                
-		elif self.Args.InputFileName[-4:]==".vtu":
-			Volume=ReadVTUFile(self.Args.InputFileName) #Read a VTU unstructured grid
-		else:
-			print ("The extension %s is not valid for volume"%self.Args.InputFileName[-4:])
-			print ("Exiting...")
-			exit(1)
+		Volume=self.ReadFile()
+
+                #Find the array name with word "scalars"
+		if self.Args.ArrayName is None:
+			for i in range(VentricleMesh.GetPointData().GetNumberOfArrays()):
+				ArrayName_=str(VentricleMesh.GetPointData().GetArrayName(i))
+				if ArrayName_.find("calars")>0: self.Args.ArrayName=ArrayName_
+
 
 		#Apply the Constant Threshold to Obtain Volume
 		ThresholdVolumeIschemic=ThresholdInBetween(Volume,self.Args.ArrayName,0,self.Args.LowerThreshold)
-		ThresholdVolumeNormal=ThresholdInBetween(Volume,self.Args.ArrayName,self.Args.LowerThreshold,10000000)
-
-		#Extract the largest connect region
-		print ("--- Extracting the largest connected region of the ischemic myocardium.")
-		ConnectivityFilterIschemic=vtk.vtkConnectivityFilter()
-		ConnectivityFilterIschemic.SetInputData(ThresholdVolumeIschemic)
-		ConnectivityFilterIschemic.SetExtractionModeToLargestRegion()
-		ConnectivityFilterIschemic.Update()
-		ConnectivityFilterIschemic=ConnectivityFilterIschemic.GetOutput()
-
-		print ("--- Extracting the largest connected region of the normal myocardium.")
-		ConnectivityFilterNormal=vtk.vtkConnectivityFilter()
-		ConnectivityFilterNormal.SetInputData(ThresholdVolumeNormal)
-		ConnectivityFilterNormal.SetExtractionModeToLargestRegion()
-		ConnectivityFilterNormal.Update()
-		ConnectivityFilterNormal=ConnectivityFilterNormal.GetOutput()
+		ThresholdVolumeHealthy=ThresholdInBetween(Volume,self.Args.ArrayName,self.Args.LowerThreshold,10000000)
 
 		#Now extract the surface to find the closest distance
 		print ("--- Extracting the surface")
-		SurfaceIschemic=ExtractSurface(ConnectivityFilterIschemic)
-		SurfaceNormal=ExtractSurface(ConnectivityFilterNormal)
+		SurfaceIschemic=ExtractSurface(ThresholdVolumeIschemic)
+		SurfaceHealthy=ExtractSurface(ThresholdVolumeHealthy)
 
-		#Separate all of the coordinates of the volume either into ischemic or normal myocardium
-		print ("--- Separating the Myocardium into Ischemic and Normal Territories")
+		#Compute the Distance Between Ischemic Surface and Entire Myocardium
+		DistanceIschemic=vtk.vtkImplicitPolyDataDistance()
+		DistanceIschemic.SetInput(SurfaceIschemic)
+		DistanceHealthy =vtk.vtkImplicitPolyDataDistance()
+		DistanceHealthy.SetInput(SurfaceHealthy)
+
+
+		#Create an array to store ischemic vs non-ischemic tags
 		IschemicMyocardiumTag=np.zeros(Volume.GetNumberOfPoints())
-		SurfaceIschemicCoords=vtk_to_numpy(SurfaceIschemic.GetPoints().GetData())
-		SurfaceNormalCoords  =vtk_to_numpy(SurfaceNormal.GetPoints().GetData())
-
+		NumberOfPoints=Volume.GetNumberOfPoints()
+		progress_old_=-1
+		print ("--- Assigning the Ischemic and Healthy Territories")
 		for i in range(Volume.GetNumberOfPoints()):
-			coord_=Volume.GetPoint(i)
-			value_,argument_,min_dist_Ischemic=ClosestPoint(coord_,SurfaceIschemicCoords)
-			value_,argument_,min_dist_Normal=ClosestPoint(coord_,SurfaceNormalCoords)
-			if min_dist_Ischemic<=min_dist_Normal:
+			#Print the progress
+			progress_=PrintProgress(i,NumberOfPoints,progress_old_)
+			progress_old_=progress_
+			#Find the Distance closest to the Surface	
+			dist_ischemic_=DistanceIschemic.EvaluateFunction(Volume.GetPoint(i))
+			dist_healthy_ =DistanceHealthy.EvaluateFunction(Volume.GetPoint(i))
+			if dist_ischemic_<=dist_healthy_:
 				IschemicMyocardiumTag[i]=1
-
-
 		 
 		IschemicMyocardiumTagVTK=numpy_to_vtk(IschemicMyocardiumTag,deep=True)
 		IschemicMyocardiumTagVTK.SetName("IschemicTerritory")
 		Volume.GetPointData().AddArray(IschemicMyocardiumTagVTK)
 		Volume.Modified()
 
-		print ("--- Writing the Output File: %s"%self.Args.OutputFolder)
-		WriteVTUFile(self.Args.OutputFolder+"/abc2.vtu",Volume)	
+
+		print ("--- Threshold Ischemic Volume with Epicardial/Endocardial Walls")
+		#Apply Threshold to Obtain Ischemic Region
+		ThresholdVolumeIschemic=ThresholdInBetween(Volume,"IschemicTerritory",1,1)
+		
+		#Find the largest connected volume
+		print ("--- Extracting the Largest Connected Region")
+		ConnectedVolume=vtk.vtkConnectivityFilter()
+		ConnectedVolume.SetInputData(ThresholdVolumeIschemic)
+		ConnectedVolume.SetExtractionModeToLargestRegion()
+		ConnectedVolume.Update()
+		ConnectedVolumeData=ConnectedVolume.GetOutput()
+
+		OutputFileName=self.Args.InputFileName.replace(".vtu","_IschemicTerritory.vtu")
+		print ("--- Writing the Output File: %s"%OutputFileName)
+		WriteVTUFile(OutputFileName,ConnectedVolumeData)	
 		
 		
-
-
+	def ReadFile(self):
+		print ("--- Reading %s"%self.Args.InputFileName)
+		if   self.Args.InputFileName[-4:]==".vtk":
+			Volume=ReadVTKFile(self.Args.InputFileName)   #Read a VTK volume stack
+			Volume=ThresholdByUpper(Volume,self.Args.ArrayName,1) #Convert to an unstructured grid 
+		elif self.Args.InputFileName[-4:]==".vtu":
+			Volume=ReadVTUFile(self.Args.InputFileName) #Read a VTU unstructured grid
+		else:
+			print ("The extension %s is not valid for volume"%self.Args.InputFileName[-4:])
+			print ("Exiting...")
+			exit(1)
+		return Volume
 
 
 if __name__=="__main__":

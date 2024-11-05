@@ -13,9 +13,7 @@ class ImageAnalysisMyocardiumOverlapWithTerritories():
 	def __init__(self,Args):
 		self.Args=Args
 		if self.Args.OutputFolder is None:
-		#	if self.InputFileName.find("/")>=0:self.Args.OutputFolder=self.Args.InputFileName(self.Args.InputFileName.replace("/")[-1],"")
-			self.Args.OutputFolder="./"
-
+			self.Args.OutputFolder=os.path.split(self.Args.InputFileName)[0]
 
 	def Main(self):
                 #Read the vtu file
@@ -34,8 +32,7 @@ class ImageAnalysisMyocardiumOverlapWithTerritories():
 
 		#Read the Labels and Extract Territories with given label on command line
 		print ("------ Reading the Territory Labels")
-		if self.Args.InputFileName.find("/")>=0:infile=open(self.Args.InputFileName.replace(self.Args.InputFileName.split("/")[-1],"MBF_Territories_Labels.dat"),'r')
-		else: infile=open("MBF_Territories_Labels.dat",'r')
+		infile=open(os.path.joib(self.Args.OutputFolder,"MBF_Territories_Labels.dat"),'r')
 		infile.readline()
 		TerritoryLabels=[]
 		for LINE in infile:
@@ -49,8 +46,7 @@ class ImageAnalysisMyocardiumOverlapWithTerritories():
 			if int(Volume.GetPointData().GetArray("TerritoryMaps").GetValue(i)) in TerritoryLabels:
 				ThresholdArray[i]=1
 		
-		#Store the data in Surface array
-		#Tags for out or inner surface
+		#Tag the Terrotiry that is supposed to be ischemic
 		ThresholdArrayVTK=numpy_to_vtk(ThresholdArray,deep=True)
 		ThresholdArrayVTK.SetName("TerritoryLabels_%s"%self.Args.TerritoryTag)
 		Volume.GetPointData().AddArray(ThresholdArrayVTK)
@@ -59,6 +55,7 @@ class ImageAnalysisMyocardiumOverlapWithTerritories():
 		#Apply the Threshold to Obtain Territory Region
 		TerritoryVolume=ThresholdByUpper(Volume,"TerritoryLabels_%s"%self.Args.TerritoryTag,1)
 		WriteVTUFile(self.Args.OutputFolder+"/MBF_Territory_%s.vtu"%self.Args.TerritoryTag,TerritoryVolume)
+		#----------------------------------------------------------------
 
 		#Apply the Constant Threshold to Obtain Volume
 		ThresholdVolume=ThresholdInBetween(Volume,self.Args.ArrayName,0,self.Args.LowerThreshold)
