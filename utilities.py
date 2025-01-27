@@ -3,6 +3,12 @@ import vtk
 from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 import numpy as np
 from glob import glob
+from scipy.spatial import distance as DISTANCE
+from scipy.stats import iqr as IQR
+from scipy.stats import kurtosis as KURTOSIS
+from scipy.stats import skew as SKEWNESS
+from scipy.stats import mode as MODE
+
 
 ############ Read Dicom Folder ############
 def ReadDicomFiles(FolderName):
@@ -307,4 +313,40 @@ def ConvertPointsToLine(PointsArray):
         return polyData
 
 
+def Statistics(Volume,ArrayName,NormalizationValue=None):
+	statistics={"Volume":None, "Mean":None, "Stdev": None, "MeanNormalized":None, "StdevNormalized":None, "Median": None, "IQR":None, "Mode":None, "75thPerct": None, "Kurtosis": None, "Skewness":None, "Volume":None}
 
+	#Convert VTK array to numpy
+	Data_=vtk_to_numpy(Volume.GetPointData().GetArray(ArrayName))
+	statistics["Mean"]      =np.mean(Data_)
+	statistics["Stdev"]     =np.std(Data_)
+	statistics["75thPerct"] =np.percentile(Data_,75)
+	statistics["Median"]    =np.median(Data_)
+	statistics["IQR"]       =IQR(Data_)
+	if NormalizationValue is None:
+		statistics["MeanNormalized"]=statistics["Mean"]/statistics["75thPerct"]
+		statistics["StdevNormalized"]=statistics["Stdev"]/statistics["75thPerct"]
+	else:
+		statistics["MeanNormalized"]=statistics["Mean"]/NormalizationValue
+		statistics["StdevNormalized"]=statistics["Stdev"]/NormalizationValue
+
+	statistics["Skewness"]   =SKEWNESS(Data_)
+	statistics["Kurtosis"]   =KURTOSIS(Data_)
+	statistics["Mode"]       =MODE(Data_)[0]	
+	
+
+	Mass = vtk.vtkIntegrateAttributes()
+	Mass.SetInputData(Volume)
+	Mass.Update() 
+	MassData=Mass.GetOutput()
+	statistics["Volume"]=MassData.GetCellData().GetArray("Volume").GetValue(0)
+	return statistics
+		
+
+def LargestConnectedRegion(Volume):
+	ConnectedVolume=vtk.vtkConnectivityFilter()
+	ConnectedVolume.SetInputData(Volume)
+	ConnectedVolume.SetExtractionModeToLargestRegion()
+	ConnectedVolume.Update()
+	ConnectedVolumeData=ConnectedVolume.GetOutput()
+	return ConnectedVolumeData

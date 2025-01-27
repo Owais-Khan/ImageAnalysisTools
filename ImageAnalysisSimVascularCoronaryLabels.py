@@ -9,18 +9,13 @@ from utilities import *
 import csv
 from scipy import stats
 
-class ImageAnalysisMyocardiumOverlapWithTerritories():
+class ImageAnalysisSimVascularCoronaryMaps():
 	def __init__(self,Args):
 		self.Args=Args
-		if self.Args.InputFileName.find("/")>=0:
-			FileName=self.Args.InputFileName.split("/")[-1]
-			self.Args.OutputFolder=self.Args.InputFileName.replace(FileName,"")
-		else:	
-			self.Args.OutputFolder="./"
 
 	def Main(self):
                 #Read the vtu file
-		print ("--- Reading %s"%self.Args.InputFileName)
+		print ("--- Reading Mesh: %s"%self.Args.SimVasc)
 		Volume=self.ReadFile()
 
                 #Find the array name with word "scalars"
@@ -100,13 +95,9 @@ class ImageAnalysisMyocardiumOverlapWithTerritories():
 
 if __name__=="__main__":
         #Description
-	parser = argparse.ArgumentParser(description="This script will objectively extract a single volume of ischemic region using threshold.")
+	parser = argparse.ArgumentParser(description="This script will take a SimVascular Folder and create image.nii.gz and label.nii.gz files for nnUNet trainning. This script is specifically designed for coronary arteries. The labelled maps will be 0=background, 1=aorta, 2=LCA, 3=RCA.")
 
-	parser.add_argument('-InputFileName', '--InputFileName', type=str, required=True, dest="InputFileName",help="The vtu file that contains the myocardial volume.")
-        
-	parser.add_argument('-ArrayName', '--ArrayName', type=str, required=False, dest="ArrayName", default="ImageScalars", help="The array name where the data is stored")
-	
-	parser.add_argument('-LowerThreshold', '--LowerThreshold', type=float, required=True, dest="LowerThreshold", default="LowerThreshold", help="The lower threshold to identify ischemia.")
+	parser.add_argument('-InputFolder', '--InputFolder', type=str, required=True, dest="InputFileName",help="The volumetric mesh in the mesh-complete folder.")
 	
 	#Output Filename 
 	parser.add_argument('-OutputFolder', '--OutputFolder', type=str, required=False, dest="OutputFolder",help="The folder in which to write the results files.")
