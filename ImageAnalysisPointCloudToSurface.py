@@ -1,20 +1,10 @@
 import os
 import numpy as np
-import scipy.io
-import vtk
-import argparse
-from glob import glob
-from utilities import *
-from vtk.util.numpy_support import vtk_to_numpy, numpy_to_vtk
+import open3d as o3d
 
-class ImageAnalysis4DFlowMRI_MatLabToVTK():
+class ImageAnalysisPointCloudToSurface():
 	def __init__(self,Args):
 		self.Args=Args
-		if self.Args.OutputFolder is None:
-			InputFileName=self.Args.InputFileName.split("/")[-1]
-			self.Args.OutputFolder=self.Args.InputFileName.replace(InputFileName,"")+"./VTK_Files"
-			os.system("mkdir %s"%self.Args.OutputFolder)
-			print ("---The OutputFolder is: %s"%self.Args.OutputFolder)
 
 	def Main(self):
 		print ("Reading the Matlab File...")
