@@ -13,10 +13,8 @@ from scipy.stats import mode as MODE
 ############ Read Dicom Folder ############
 def ReadDicomFiles(FolderName):
 	FileList=sorted(glob("%s/*.dcm"%FolderName))
-	print (FileList[0])
+	print ("------ Number of DICOM Files: %d"%len(
 	Image=vmtkscripts.vmtkImageReader()
-	print (dir(Image))
-	exit(1)
 	Image.InputFileName(FileList[0])
 	Image.ImageOutputFileName("/Users/mokhan/GoogleDrive/Owais/Research_Postdoc/perfusion_project/Simvascular/CABG1A/Images/abc.vti")
 	Image.Update()
