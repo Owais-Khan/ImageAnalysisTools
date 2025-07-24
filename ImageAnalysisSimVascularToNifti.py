@@ -31,6 +31,9 @@ class ImageAnalysisPointCloudToSurface():
 		print ("------ Reading Image: %s"%ImageFiles[0])
 		ImageVTI=ReadVTIFile(ImageFiles[0])
 
+                print ("------ Writing Image File: %s.nii.gz"%self.Args.OutputFileName)
+                WriteNiftiFile(self.Args.OutputFileName.replace(".vti","_labels.nii.gz"),ImageVTI)
+
 		# Create an intersection filter
 		mesh_complete_filename=sorted(glob(os.path.join(self.Args.InputFolder,"Meshes/*mesh-complete/mesh-complete.mesh.vtu")))[0]
 		print ("------ Reading mesh-complete.mesh.vtu file: %s"%mesh_complete_filename)
@@ -56,15 +59,17 @@ class ImageAnalysisPointCloudToSurface():
 	
 		print ("\n --- Looping over the Image volume to assign tags. This may take some time...")	
 		#Loop over the entire volume and fill the tags according to vessel name
+		counter=0
 		for i in range (NumberOfImagePoints):
 			point_=ImageVTI.GetPoint(i)
 			test_=CellLocator.FindCell(point_)
 			if test_ != -1: #If image point is found inside the mesh
 				value_,id_,min_dist_=ClosestPoint(point_,Coords)
 				ImageVTI.GetPointData().GetArray("Scalars_").SetValue(i,Tags[id_])
+				counter+=1
 							
-		print ("------ Writing File: %s.nii.gz"%self.Args.OutputFileName)
-		WriteNiftiFile(self.Args.OutputFileName.replace(".vti",".nii.gz"),ImageVTI)
+		print ("------ Writing Label File: %s.nii.gz"%self.Args.OutputFileName)
+		WriteNiftiFile(self.Args.OutputFileName.replace(".vti","_labels.nii.gz"),ImageVTI)
 
 
 
@@ -108,5 +113,5 @@ if __name__=="__main__":
 	parser.add_argument('-OutputFolder', '--OutputFolder', required=False, dest="OutputFolder",help="Folder to store the labelled maps.")
                         
 	args=parser.parse_args()
-	ImageAnalysisPointCloudToSurface(args).Main()
+	IumageAnalysisPointCloudToSurface(args).Main()
 
