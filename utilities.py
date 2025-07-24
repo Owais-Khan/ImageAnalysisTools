@@ -11,7 +11,7 @@ from scipy.stats import mode as MODE
 
 
 ############ Read Dicom Folder ############
-def ReadDicomFiles(FolderName):
+"""def ReadDicomFiles(FolderName):
 	FileList=sorted(glob("%s/*.dcm"%FolderName))
 	print ("------ Number of DICOM Files: %d"%len(
 	Image=vmtkscripts.vmtkImageReader()
@@ -19,7 +19,7 @@ def ReadDicomFiles(FolderName):
 	Image.ImageOutputFileName("/Users/mokhan/GoogleDrive/Owais/Research_Postdoc/perfusion_project/Simvascular/CABG1A/Images/abc.vti")
 	Image.Update()
 
-#ReadDicomFiles("/Users/mokhan/GoogleDrive/Owais/Research_Postdoc/perfusion_project/Simvascular/CABG1A/Images/CTA")
+#ReadDicomFiles("/Users/mokhan/GoogleDrive/Owais/Research_Postdoc/perfusion_project/Simvascular/CABG1A/Images/CTA")"""
 
 	
 	
@@ -65,6 +65,12 @@ def WriteVTUFile(FileName,Data):
         
 def WriteVTPFile(FileName,Data):
 	writer=vtk.vtkXMLPolyDataWriter()
+	writer.SetFileName(FileName)
+	writer.SetInputData(Data)
+	writer.Update()
+
+def WriteNiftiFile(FileName,Data):
+	writer=vtk.vtkNIFTIImageWriter()
 	writer.SetFileName(FileName)
 	writer.SetInputData(Data)
 	writer.Update()

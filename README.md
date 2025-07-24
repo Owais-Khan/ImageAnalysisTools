@@ -91,6 +91,25 @@ Optional Arguments:
 - ```-OutputFileName```: OutputFileName will have the surface tag _Surface.vtp using the InputImage name.
 - ```-Thickness```: Length of the spokes. Default is 1 (e.g., 0.5mm in and 0.5mm out of the surface).
 
+
+## ImageAnalysisSimVascularToNifti.py
+This script will convert the image.vti file in SimVascular folder to nifti format + add labels for nnUnet training using mesh-complete folder. Thus, you can now use existing SimVascular meshes/models for training deep-learning segmentation algorithms (e.g., nnuNet). The script will create a Nifti sub-folder within the SimVascular folder containing two files: 1) Image.vti converted into Image.nii.gz; and 2) Labels.nii.gz that will contain the label masks generated using mesh-complete folder. 
+
+```console
+foo@bar:~$ python ImageAnalysisSimVascularToNifti.py -InputFolder /path/to/SimVascular/folder/ -Tags /surface_file_names/seperate/by/commas
+```
+Note: As an example, Tags can be set to ```wall_aorta,wall_L_,wall_R_``` which will set label masks 1,2,3 in the nifti images for surface files such that 1=wall_aorta* 2=wall_L_* and 3=wall_R_
+
+## ImageAnalysisProjectImageWallToSurface.py
+This script will project image intensities close to the surface wall onto the surface. Inward/Outward pointing spokes from each surface node are computed and image intensities are projected on each of the spokes. Heatmaps of averaged and max intensities along these spokes are created to the surface.
+
+```console
+foo@bar:~$ python ImageAnalysisProjectImageWallToSurface.py -InputImage /path/to/input/image -InputSurface /path/to/input/surface
+```
+Optional Arguments:
+- ```-OutputFileName```: OutputFileName will have the surface tag _Surface.vtp using the InputImage name.
+- ```-Thickness```: Length of the spokes. Default is 1 (e.g., 0.5mm in and 0.5mm out of the surface).
+
 ---
 ## 4D Flow MRI Tools
 
